@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="45" height="45" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" source="controlset.tsx"/>
+ <layer name="Control" width="45" height="45">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3TMQoAIAwDQH2C//+suKvQQax4B5mbIS0FAAAAAADgH3URyOL0Rl/ce6Rzlv+e3c3Qa2d0ardLBK3+JXM6FmSeXKQfAAA=
+  </data>
+ </layer>
+</map>
