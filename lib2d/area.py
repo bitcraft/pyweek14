@@ -56,183 +56,6 @@ class Sound(object):
 
 
 
-class AreaCell(GameObject):
-    """
-    A node in a quadtree that contains supporting functions so that it can be
-    used as a generic container of objects in a game world.
-
-    Areas will be defined as an AreaCell and will be bisected as objects are
-    added, removed, and moved.  As a regular game object, AreaCells can be
-    stored in the save pickle.
-
-    When creating, it can be canvased with tilemap data to provide data for
-    rendering.
-    """
-
-    
-
-
-class AreaData(GameObject):
-    """
-    Contains data that is needed to store objects in a 3d area.
-    """
-
-
-    def __init__(self):
-        AbstractArea.__init__(self)
-        self.bodies = {}         # position and size of bodies in 3d space
-        self.orientations = {}   # records where the body is facing
-        self.joins = []          # records simple joins between bodies
-        self._oldPositions = {}  # used in collision handling
-        self.extent = None       # used to position objects inside the area
-
-
-    def defaultPosition(self):
-        return BBox(0,0,0,1,1,1)
-
-
-    def defaultSize(self):
-        # TODO: this cannot be hardcoded!
-        return (10, 8)
-
-
-    def load(self):
-        """Load the data from a TMX file that is required for this map
-
-        This must be done when using the object in the game!
-        """
-      
-        import tmxloader
- 
-        self.tmxdata = tmxloader.load_pygame(
-                       self.mappath, force_colorkey=(128,128,0))
-
-        # quadtree for handling collisions with exit tiles
-        rects = []
-        for guid, param in self.exits.items():
-            try:
-                x, y, l = param[0]
-            except:
-                continue
-
-            rects.append(ExitTile((x,y,
-                self.tmxdata.tilewidth, self.tmxdata.tileheight), guid))
-
-        self.exitQT = QuadTree(rects)
-
-
-    def join(self, body1, body2):
-        """
-        joins two bodies together.
-        if one body moves, the other one will move with it, if able
-        """
-
-        self.joins.append((body1, body2))
-
-
-    def unjoin(self, body1, body2):
-        """
-        breaks a join between two bodies
-        """
-
-        try:
-            self.joins.remove((body1, body2))
-            return True
-        except:
-            return False
-
-
-    def getBBox(self, body):
-        """ Return a bbox that represents this body in world """
-        return self.bodies[body]
-
-
-    def setBBox(self, body, bbox):
-        """ Attempt to set a bodies bbox.  Returns True if able. """
-
-        if not isinstance(bbox, BBox):
-            bbox = BBox(bbox)
-
-        if self.testCollide(bbox):
-            return False
-        else:
-            self.bodies[body] = bbox
-            self._oldPositions[body] = bbox
-            return True
-    
-
-    def testCollide(self, bbox):
-        return False
-
-
-    def getSize(self, body):
-        """ Return 3d size of the body """
-
-        return self.bodies[body].size
-
-
-    def getPositions(self):
-        return [ (o, b.origin) for (o, b) in self.bodies.items() ]
-
-
-    def getOrientation(self, body):
-        """ Return the angle body is facing in radians """
-
-        return self.orientations[body]
-
-
-    def setOrientation(self, body, angle):
-        """ Set the angle the body is facing.  Expects radians. """
-
-        if isinstance(angle, str):
-            try:
-                angle = cardinalDirs[angle]
-            except:
-                raise
-        self.orientations[body] = angle
-
-
-    def add(self, body):
-        GameObject.add(self, body)
-        self.bodies[body] = self.defaultPosition()
-        self._oldPositions[body] = self.bodies[body]
-        self.orientations[body] = 0.0
-
-
-    def remove(self, body):
-        GameObject.remove(self, body)
-        del self.bodies[body]
-        del self._oldPositions[body]
-        del self.orientations[body]
-
-        to_remove = []
-        for j in self.joins:
-            if body in j:
-                to_remove.append(j)
-
-        for j in to_remove:
-            self.joins.remove(j)
-
-
-    def setPosition(self, body, (x, y, z)):
-        """
-        Set the position on an object.  Does no checking.
-        """
-
-        self._oldPositions[body] = self.bodies[body] 
-        self.bodies[body] = bbox
-
-
-    def getOldPosition(self, body):
-        return self._oldPositions[body]
-
-
-    def getPosition(self, body):
-        return self.bodies[body].origin
-
-
-
-
 class Area(AbstractArea):
     """3D environment for things to live in.
     Includes basic pathfinding, collision detection, among other things.
@@ -298,6 +121,12 @@ class Area(AbstractArea):
         self.tmxdata = None
         self.mappath = None
         self.sounds = []
+
+    def add(self, body):
+        AbstractArea.add(self, body)
+        self.bodies[body] = self.defaultPosition()
+        self.orientations[body] = 0.0
+
 
     def movePosition(self, body, (x, y, z), push=False, caller=None, \
                      suppress_warp=False, clip=True):
@@ -516,7 +345,12 @@ class Area(AbstractArea):
     def update(self, time):
         self.time += time
         [ sound.update(time) for sound in self.sounds ]
-        [ o.update(time) for o in self.bodies ]
+        [ body.update(time) for body in self.bodies ]
+        [ self.updatePhysics(body, time) for body in self.bodies ]
+
+
+    def updatePhysics(self, body, time):
+        self.movePosition(body, (0,0,-0.125))
 
 
     def setExtent(self, rect):
@@ -531,7 +365,7 @@ class Area(AbstractArea):
         """
 
         # TODO: calc layer value
-        layer = 4
+        layer = 0
 
         try:
             rect = self.toRect(bbox)
@@ -602,13 +436,13 @@ class Area(AbstractArea):
 
         return self.orientations[body]
 
-
+    # for platformers
     def toRect(self, bbox):
         """
         Make a rect that represents the body's 'bottom plane'.
         """
 
-        return Rect((bbox.x, bbox.y, bbox.depth, bbox.width))
+        return Rect((bbox.y, bbox.z, bbox.width, bbox.height))
 
 
     def getOldPosition(self, body):

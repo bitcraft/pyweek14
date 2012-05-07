@@ -227,7 +227,7 @@ class StateDriver(object):
         
         currentState = current_state()
         while currentState:
-            time = clock.tick(60)
+            time = clock.tick(30)
 
             event = event_poll()
             while event:

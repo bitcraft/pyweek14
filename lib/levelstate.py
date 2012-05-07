@@ -102,7 +102,7 @@ class LevelState(GameState):
         # get the root and the hero from it
         root = self.area.getRoot()
         self.hero = root.getChildByGUID(1)
-        self.hero.move_speed = .8
+        self.hero.move_speed = 1.6
 
         # add the hero to this map if it isn't ready there
         if not self.area.hasChild(self.hero):
@@ -116,7 +116,7 @@ class LevelState(GameState):
         sw, sh = sd.get_size()
         mw = sw * .75
         mh = sh * .75
-        self.camera = LevelCamera(self.area,((0,0), (mw, mh)),
+        self.camera = LevelCamera(self.area,((4,4), (mw, mh)),
                                   tmxdata=self.tmxdata)
 
         self.mapBorder = pygame.Rect((0,0,mw+6,mh+6))
@@ -189,7 +189,7 @@ class LevelState(GameState):
 
         # the main map
         self.camera.center(self.area.getPosition(self.hero))
-        self.camera.draw(surface, origin=(4, 4))
+        self.camera.draw(surface)
 
         # borders
         self.borderFilled.draw(surface, self.msgBorder)

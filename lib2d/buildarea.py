@@ -12,10 +12,10 @@ def fromTMX(parent, mapname):
     otherwise body loading will not work and area building will fail.
     """
 
-
+    # for platformer maps
     def toWorld(data, (x, y, l)):
         """ translate tiled map coordinates to world coordinates """
-        return y*data.tileheight, x*data.tilewidth, l
+        return y*data.tileheight, 0, x*data.tilewidth
 
 
     area = Area()
@@ -38,7 +38,7 @@ def fromTMX(parent, mapname):
         # translate the tiled coordinates to world coordinates
         x, y, sx, sy = rect
         rects.append(Rect(y,x,sy,sx))
-    area.setLayerGeometry(4, rects)
+    area.setLayerGeometry(0, rects)
 
 
     # load the npc's and place them in the default positions 
@@ -51,14 +51,13 @@ def fromTMX(parent, mapname):
             raise Exception, msg.format(gid)
 
         x, y, z = toWorld(data, pos[0])
-        x += data.tileheight     # needed to position bodies correctly
+        z += data.tileheight     # needed to position bodies correctly
         y += data.tilewidth / 2  # needed to position bodies correctly
         body = area._parent.getChildByGUID(int(prop['guid']))
 
         area.add(body)
-        d, w, h = (8, 10, 8)
-        z = 4
-        bbox = BBox(x-d, y, z, d, w, h)
+        d, w, h = (8, 32, 32)
+        bbox = BBox(x-d, y, z-h, d, w, h)
         area.setBBox(body, bbox)
         area.setOrientation(body, "south")
 
