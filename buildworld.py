@@ -5,6 +5,7 @@ from lib2d.objects import AvatarObject
 from lib2d import res, tmxloader
 from lib.hero import Hero
 from lib.level import Level
+from lib.enemies import *
 
 from collections import defaultdict
 import os
@@ -18,29 +19,45 @@ uni.setGUID(0)
 
 # build our avatars and heros
 avatar = Avatar()
-ani = Animation("idle.png", "stand", 9, 1, 100)
+ani = Animation("hero-idle.png", "stand", 9, 1, 100)
 avatar.add(ani)
-ani = Animation("walk.png", "walk", 10, 1, 100)
+ani = Animation("hero-walk.png", "walk", 10, 1, 100)
 avatar.add(ani)
-ani = Animation("crouch.png", "crouch", 5, 1, 30)
+ani = Animation("hero-crouch.png", "crouch", 5, 1, 30)
 avatar.add(ani)
-ani = Animation("uncrouch.png", "uncrouch", 5, 1, 30)
+ani = Animation("hero-uncrouch.png", "uncrouch", 5, 1, 30)
 avatar.add(ani)
-ani = Animation("brake.png", "brake", 6, 1, 30)
+ani = Animation("hero-brake.png", "brake", 6, 1, 30)
 avatar.add(ani)
-ani = Animation("run.png", "run", 16, 1, 30)
+ani = Animation("hero-run.png", "run", 16, 1, 30)
 avatar.add(ani)
-ani = Animation("sprint.png", "sprint", 17, 1, 100)
+ani = Animation("hero-sprint.png", "sprint", 17, 1, 100)
 avatar.add(ani)
-ani = Animation("wait.png", "wait", 6, 1, 100)
+ani = Animation("hero-wait.png", "wait", 6, 1, 100)
 avatar.add(ani)
-ani = Animation("jump.png", "jump", 4, 1, 20)
+ani = Animation("hero-jump.png", "jump", 4, 1, 20)
+avatar.add(ani)
+ani = Animation("hero-die.png", "die", 3, 1, 85)
 avatar.add(ani)
 avatar.play("stand")
 npc = Hero()
 npc.setName("Doc")
 npc.setAvatar(avatar)
 npc.setGUID(1)
+uni.add(npc)
+
+# laser robot
+avatar = Avatar()
+ani = StaticAnimation("robot-stand.png", "stand")
+avatar.add(ani)
+ani = Animation("robot-shoot.png", "warn", 4, 1, 60)
+avatar.add(ani)
+ani = Animation("robot-shoot.png", "shoot", 4, 1, 30)
+avatar.add(ani)
+npc = LaserRobot()
+npc.setName("LaserRobot")
+npc.setAvatar(avatar)
+npc.setGUID(513)
 uni.add(npc)
 
 

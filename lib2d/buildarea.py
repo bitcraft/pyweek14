@@ -52,13 +52,11 @@ def fromTMX(parent, mapname):
             raise Exception, msg.format(gid)
 
         x, y, z = toWorld(data, pos.pop())
-        #z += data.tileheight     # needed to position bodies correctly
-        #y += data.tilewidth / 2  # needed to position bodies correctly
+        d, w, h = (8, 32, 32)
+        bbox = BBox(x, y, z-h, d, w, h)
         body = area._parent.getChildByGUID(int(prop['guid']))
 
         area.add(body)
-        d, w, h = (8, 32, 32)
-        bbox = BBox(x, y, z-h, d, w, h)
         area.setBBox(body, bbox)
         area.setOrientation(body, "south")
 
@@ -76,15 +74,10 @@ def fromTMX(parent, mapname):
         body = area._parent.getChildByGUID(int(prop['guid']))
         copy = False
 
-        for x, y, l in locations:
-            x, y, z = toWorld(data, (x, y, l))
-            w, h, d = (10, 6, 8)
-            z = 0
-
-            x += data.tileheight - d / 2   # needed to position bodies correctly
-            y += data.tilewidth / 2 - w / 2  # needed to position bodies correctly
-
-            bbox = BBox(x-d, y, z, d, w, h)
+        for pos in locations:
+            x, y, z = toWorld(data, pos)
+            d, w, h = (8, 32, 32)
+            bbox = BBox(x, y, z-h, d, w, h)
 
             # bodies cannot exists in multiple locations, so a copy is
             # made for each

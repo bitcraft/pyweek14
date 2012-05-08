@@ -137,11 +137,11 @@ class Avatar(GameObject):
         self.timer += time
 
         ttl = self.curAnimation.getTTL(self.curFrame)
-        if ttl < 0:
-            self.paused = 1
-            return
-
         while (self.timer >= ttl):
+            if ttl < 0:
+                self.paused = 1
+                return
+
             self.timer -= ttl
             self.advanceFrame()
             ttl = self.curAnimation.getTTL(self.curFrame)
@@ -184,10 +184,14 @@ class Avatar(GameObject):
         """
         pauses the current animation and runs the callback if needed.
         """
+
+        self.doCallback()
+        self.reset()
+
+
+    def doCallback(self):
         if self.callback:
             self.callback[0](*self.callback[1])
-
-        self.reset()
 
 
     def reset(self):
@@ -195,6 +199,7 @@ class Avatar(GameObject):
         sets defaults of the avatar.
         """
 
+        self.doCallback()
         self.play(self.default)
 
 
@@ -243,7 +248,7 @@ class Avatar(GameObject):
 
 
     def add(self, other):
-        if isinstance(other, Animation):
+        if isinstance(other, Animation) or isinstance(other, StaticAnimation):
             self.animations[other.name] = other
             if self.default == None:
                 self.setDefault(other)
@@ -322,6 +327,10 @@ class Animation(GameObject):
         self.images = []
 
 
+    def returnNew(self):
+        return self
+
+
     def load(self):
         """
         load the images for use with pygame
@@ -337,7 +346,10 @@ class Animation(GameObject):
         for y in range(0, ih, th):
             #if d == ih/th: d = 0
             for x in range(0, iw, tw):
-                frame = image.subsurface((x, y, tw, th))
+                try:
+                    frame = image.subsurface((x, y, tw, th))
+                except ValueError as e:
+                    raise ValueError, self.filename
                 self.images[(x/tw)+d*self.real_frames] = frame
             d += 1
 
@@ -392,8 +404,7 @@ class StaticAnimation(Animation):
         self.image = None
 
     def returnNew(self):
-        new = StaticAnimation(self.filename, self.name, self.tile, self.size)
-        return new
+        return self
 
 
     def load(self):

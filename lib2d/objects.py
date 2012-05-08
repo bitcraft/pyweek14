@@ -124,6 +124,7 @@ class GameObject(object):
 
     def remove(self, other):
         self._children.remove(other)
+        other._parent = None
 
 
     def add(self, other):
@@ -233,6 +234,7 @@ class GameObject(object):
             child.destroy()
 
         self._children = []
+        self.parent.remove(self)
 
 
     def setParent(self, parent):

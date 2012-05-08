@@ -130,13 +130,38 @@ class Area(AbstractArea):
         self.tmxdata = None
         self.mappath = None
         self.sounds = []
+        self.inUpdate = False
+        self._addQueue = []
+        self._removeQueue = []
+        self.drawables = []      # HAAAAKCCCCKCK
+
 
     def add(self, body):
+        if self.inUpdate:
+            self._addQueue.append(body)
+            return
+
         AbstractArea.add(self, body)
         self.positions[body] = self.defaultPosition()
         self.orientations[body] = 0.0
         self.velocities[body] = Vec2d(0,0)
         self.accels[body] = Vec2d(0,0)
+
+
+    def remove(self, body):
+        if self.inUpdate:
+            self._removeQueue.append(body)
+            return
+
+        AbstractArea.remove(self, body)
+        del self.positions[body]
+        del self.orientations[body]
+        del self.velocities[body]
+        del self.accels[body]
+        try:
+            self.drawables.remove(body)
+        except IndexError:
+            pass
 
 
     def movePosition(self, body, (x, y, z), push=False, caller=None, \
@@ -356,10 +381,17 @@ class Area(AbstractArea):
 
 
     def update(self, time):
+        self.inUpdate = True
         self.time += time
         [ sound.update(time) for sound in self.sounds ]
         [ body.update(time) for body in self.positions ]
         [ self.updatePhysics(body, time) for body in self.positions ]
+
+        self.inUpdate = False
+        [ self.add(body) for body in self._addQueue ]
+        [ self.remove(body) for body in self._removeQueue ]
+        self._addQueue = []
+        self._removeQueue = []
 
 
     # for platformers
@@ -375,14 +407,13 @@ class Area(AbstractArea):
         """
         basic gravity
         """
-       
+      
         time = time / 100
 
         a = self.accels[body]
 
         if not self.grounded(body) and a.y < 0:
             a += (0, .5)
-
 
         v = a * time
 

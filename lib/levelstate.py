@@ -151,12 +151,6 @@ class LevelState(GameState):
                     if key[4:].lower() == "sound":
                         self.sounds[value] = res.loadSound(value)
 
-        # determine if the hero is on an exit warp.
-        # if so, then we need to ignore collisions with it until the player
-        # moves off of the exit.
-        #if self.exitQT.hit(self.area.getpygame.Rect(self.hero)):
-        #    self.heroOnExit = True
-
 
     def deactivate(self):
         pass
@@ -192,6 +186,10 @@ class LevelState(GameState):
         # the main map
         self.camera.center(self.area.getPosition(self.hero))
         self.camera.draw(surface)
+
+        if self.area.drawables:
+            [ o.draw(surface) for o in self.area.drawables ]
+            self.blank = True
 
         # borders
         #self.borderFilled.draw(surface, self.msgBorder)
