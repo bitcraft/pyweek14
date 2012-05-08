@@ -37,7 +37,7 @@ class Body(object):
         self.acc = acc
         self.vel = vel
         self.o = o
-        self.isFalling = False
+        self._isFalling = False
 
 
     @property
@@ -46,6 +46,20 @@ class Body(object):
             return self.parent.pushable
         except AttributeError:
             return True
+
+
+    @property
+    def isFalling(self):
+        return self._isFalling
+
+
+    @isFalling.setter
+    def isFalling(self, value):
+        self._isFalling = value
+        try:
+            self.parent.isFalling = value
+        except AttributeError:
+            pass
 
 
 class AbstractArea(GameObject):
@@ -148,6 +162,7 @@ class Area(AbstractArea):
         self.inUpdate = False
         self._removeQueue = []
 
+
     def load(self):
         """Load the data from a TMX file that is required for this map
 
@@ -174,11 +189,7 @@ class Area(AbstractArea):
 
 
     def add(self, thing):
-        #if self.inUpdate:
-        #    self._addQueue.append(body)
-        #    return
-
-        body = Body(self.defaultPosition(), Vec2d(0,0), 0.0, None)
+        body = Body(self.defaultPosition(), Vec2d(0,0), Vec2d(0,0), 0.0, parent=thing)
         self.bodies[thing] = body
         AbstractArea.add(self, thing)
         #AbstractArea.add(self, body)
@@ -195,7 +206,7 @@ class Area(AbstractArea):
         # hack
         try:
             self.drawables.remove(thing)
-        except IndexError:
+        except (ValueError, IndexError):
             pass
 
 
@@ -329,7 +340,6 @@ class Area(AbstractArea):
                 dest.setBBox(body, exitbbox)
                 dest.setOrientation(body, face)
                 
-
                 # when changing the destination, we do a bunch of moves first
                 # to push objects out of the way from the door...if possible
                 dx = round(math.cos(angle))
@@ -432,15 +442,24 @@ class Area(AbstractArea):
 
         # awkward looping allowing objects to be added/removed during update
         counter = 0
-        self.inUpdate = True
-        while counter <= len(self.bodies):
-            body = self.bodies[counter]
-            self.physicsUpdate(body, time)
-            body.update(time)
+        offset = 0
+        things = self.bodies.keys()
+        while counter + offset < len(self.bodies):
+            try:
+                thing = things[counter]
+            except IndexError:
+                things = [ t for t in self.bodies.keys() if not t in things ]
+                offset = counter
+                counter = 0
+                continue
+
+            self.updatePhysics(self.bodies[thing], time)
+            thing.update(time)
+            counter += 1
 
         self.inUpdate = False
         [ self.remove(thing) for thing in self._removeQueue ] 
-        self.toRemove = []
+        self._removeQueue = []
 
         return
 
@@ -459,13 +478,12 @@ class Area(AbstractArea):
         
 
     # 2d physics only
-    def updatePhysics(self, thing, time):
+    def updatePhysics(self, body, time):
         """
         basic gravity
         """
       
         time = time / 100
-        body = self.getBody(thing)
         a = body.acc
 
         # de-accel vertical movement

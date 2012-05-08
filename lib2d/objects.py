@@ -127,8 +127,12 @@ class GameObject(object):
 
 
     def remove(self, other):
-        self._children.remove(other)
-        other._parent = None
+        try:
+            self._children.remove(other)
+            other._parent = None
+        except ValueError:
+            msg = "Attempting to remove child ({}), but not in parent ({})"
+            raise ValueError, msg.format(other, self)
 
 
     def add(self, other):
@@ -227,18 +231,20 @@ class GameObject(object):
         return self.icon
 
 
-    def destroy(self):
+    def destroy(self, parent=None):
         """
         destroy the object and children.  the object will be removed from the
         game and references cleared.
         """
 
-        for child in self._children:
-            child._parent = None
-            child.destroy()
+        print "dest", self, self._parent
 
+        self.unload()
+        for child in self._children:
+            child.destroy()
+        if self._parent:
+            self._parent.remove(self)
         self._children = []
-        self.parent.remove(self)
 
 
     def setParent(self, parent):
@@ -288,11 +294,16 @@ class AvatarObject(GameObject):
 
     def add(self, other):
         from avatar import Avatar
-
         if isinstance(other, Avatar):
             self._avatar = other
-
         GameObject.add(self, other)
+
+
+    def remove(self, other):
+        from avatar import Avatar
+        if isinstance(other, Avatar):
+            self._avatar = None
+        GameObject.remove(self, other)
 
 
     @property    

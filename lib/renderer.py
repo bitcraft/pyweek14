@@ -20,7 +20,6 @@ class LevelCamera(object):
         self.rect = rect
         self.area = area
         self.set_extent(rect)
-        self.avatars = []
 
         # create a renderer for the map
         self.maprender = BufferedTilemapRenderer(tmxdata, rect)
@@ -38,8 +37,7 @@ class LevelCamera(object):
         for child in self.area.getChildren():
             if isinstance(child, AvatarObject):
                 child.avatar.update(0)              # hack to re-init avatar
-                self.avatars.append(child.avatar)
-
+ 
 
     def set_extent(self, extent):
         """
@@ -56,7 +54,8 @@ class LevelCamera(object):
 
     def update(self, time):
         self.maprender.update(None)
-        [ a.update(time) for a in self.avatars ]
+        [ o.avatar.update(time) for o in self.area.getChildren()
+          if hasattr(o, "avatar") ]
 
 
     def center(self, pos):
@@ -95,8 +94,11 @@ class LevelCamera(object):
 
 
     def draw(self, surface):
-        avatars = []
-        for a in self.avatars:
+        avatars = [ o.avatar for o in self.area.getChildren()
+                    if hasattr(o, "avatar") ]
+        onScreen = []
+
+        for a in avatars:
             aWidth, aHeight = a.get_size()
             d, w, h = a.getSize()
             x, y = self.toSurface(a.getPosition())
@@ -107,9 +109,9 @@ class LevelCamera(object):
                 x += self.rect.left
                 y += self.rect.top
                 rect = Rect((x-(aWidth-w)/2, y-aHeight+d*2, aWidth, aHeight))
-                avatars.append((a, rect))
+                onScreen.append((a, rect))
 
-        onScreen = [ (a.image, r, 2) for a, r in avatars ]
+        onScreen = [ (a.image, r, 2) for a, r in onScreen ]
         #onScreen.sort(key=screenSorter)
 
         return self.maprender.draw(surface, onScreen)

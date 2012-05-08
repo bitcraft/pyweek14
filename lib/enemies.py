@@ -13,7 +13,7 @@ class Laser(GameObject):
     def update(self, time):
         self.time += time
         if self.time >= self.ttl:
-            #self.destroy()
+            self.destroy()
             pass
 
     def draw(self, surface):
@@ -45,18 +45,21 @@ class LaserRobot(AvatarObject):
 
         if self.isFalling and self.isAlive:
             self.isAlive = False
-            #self.die()
+            self.die()
 
 
     def die(self):
+        print "die"
         bolt = AvatarObject()
         avatar = Avatar()
-        avatar.add(Animation("electrify.png", "electrify", 2, 1, 40))
+        ani = Animation("electrify.png", "electrify", 2, 1, 50)
+        ani.load()
+        avatar.add(ani)
+        avatar.play("electrify", loop=3, callback=bolt.destroy)
         bolt.setAvatar(avatar)
         self.parent.add(bolt)
         self.parent.setPosition(bolt, self.parent.getPosition(self))
-        bolt.avatar.play("electrify", loop=4, callback=bolt.destroy)
-        
+
 
     def warn(self):
         self.avatar.play("warn", loop=4)

@@ -130,9 +130,9 @@ class Avatar(GameObject):
         animation files must match the units provided here.  ie: milliseconds.
         """
 
-        if self._is_paused: return
         if not self.curAnimation:
-            self.play(self.default)
+            self.reset()
+        if self._is_paused: return
 
         self.timer += time
 
@@ -144,7 +144,12 @@ class Avatar(GameObject):
 
             self.timer -= ttl
             self.advanceFrame()
-            ttl = self.curAnimation.getTTL(self.curFrame)
+
+            # the animation may have been lost after the advance
+            if self.curAnimation:
+                ttl = self.curAnimation.getTTL(self.curFrame)
+            else:
+                break
 
 
     def advanceFrame(self):
@@ -193,13 +198,13 @@ class Avatar(GameObject):
         if self.callback:
             self.callback[0](*self.callback[1])
 
-
     def reset(self):
         """
         sets defaults of the avatar.
         """
 
-        self.doCallback()
+        if len(self.animations) == 0:
+            return 
         self.play(self.default)
 
 
@@ -215,7 +220,7 @@ class Avatar(GameObject):
 
     def isPlaying(self, name):
         if isinstance(name, Animation):
-            if name == self.curanimation: return True
+            if name == self.curAnimation: return True
         else:
             if self.getAnimation(name) == self.curAnimation: return True
         return False
@@ -223,9 +228,6 @@ class Avatar(GameObject):
 
     def play(self, name=None, start_frame=0, loop=-1, loop_frame=0, \
              callback=None, arg=[]):
-
-        # play animation.  if currently playing animation is same as 'name'
-        # then simply return.
 
         if isinstance(name, Animation):
             if name == self.curAnimation: return
@@ -252,8 +254,31 @@ class Avatar(GameObject):
             self.animations[other.name] = other
             if self.default == None:
                 self.setDefault(other)
-            
         GameObject.add(self, other)
+
+
+    def remove(self, other):
+        playing = False
+        if isinstance(other, Animation) or isinstance(other, StaticAnimation):
+            if self.isPlaying(other):
+                playing = True
+            del self.animations[other.name]
+        
+        print "av remove", self, other, playing
+
+        # handle when there are no animations left
+        if len(self.animations) == 0:
+            self.callback = None
+            self.curAnimation = None
+            self.curImage = None
+            self.curFrame = None
+            self.default = None
+            self.paused = True
+        elif playing:
+            self.default = self.setDefault(self.animations.keys()[0])
+            self.reset()
+
+        GameObject.remove(self, other)
 
 
     def getAnimation(self, name):
@@ -331,10 +356,13 @@ class Animation(GameObject):
         return self
 
 
-    def load(self):
+    def load(self, force=False):
         """
         load the images for use with pygame
         """
+
+        if not self.images == [] and not force:
+            return
 
         image = res.loadImage(self.filename, 0, 1)
         iw, ih = image.get_size()
@@ -360,7 +388,15 @@ class Animation(GameObject):
             self.timing = [200] * self.frames
 
 
+    def unload(self):
+        self.images = []
+
+
     def getTTL(self, number):
+        if self.images == []:
+            print self.timing, self
+            raise Exception, "Avatar hasn't loaded images yet"
+
         return self.timing[number]
 
 
@@ -369,6 +405,9 @@ class Animation(GameObject):
         return the frame by number with the correct image for the direction
         direction should be expressed in radians
         """
+
+        if self.images == []:
+            raise Exception, "Avatar hasn't loaded images yet"
 
         if direction < 0:
             direction = pi + (pi - abs(direction))
