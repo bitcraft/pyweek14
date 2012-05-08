@@ -30,8 +30,22 @@ class ExitTile(FrozenRect):
 
 
 class Body(object):
-    def __init__(self):
-        pass
+    def __init__(self, bbox, acc, vel, o, parent=None):
+        self.parent = parent
+        self.bbox = bbox
+        self.oldbbox = bbox
+        self.acc = acc
+        self.vel = vel
+        self.o = o
+        self.isFalling = False
+
+
+    @property
+    def pushable(self):
+        try:
+            return self.parent.pushable
+        except AttributeError:
+            return True
 
 
 class AbstractArea(GameObject):
@@ -118,13 +132,9 @@ class Area(AbstractArea):
         AbstractArea.__init__(self)
         self.exits    = {}
         self.geometry = {}       # geometry (for collisions) of each layer
-        self.positions = {}      # position and size of bodies in 3d space
-        self.velocities = {}     # physics hack
-        self.accels = {}         # physics hack
-        self.orientations = {}   # records where the body is facing
+        self.bodies = {}         # hack
         self.extent = None       # absolute boundries of the area
         self.joins = []          # records simple joins between bodies
-        self._oldPositions = {}  # used in collision handling
         self.messages = []
         self.time = 0
         self.tmxdata = None
@@ -136,35 +146,58 @@ class Area(AbstractArea):
         self.drawables = []      # HAAAAKCCCCKCK
 
 
-    def add(self, body):
-        if self.inUpdate:
-            self._addQueue.append(body)
-            return
+    def load(self):
+        """Load the data from a TMX file that is required for this map
 
-        AbstractArea.add(self, body)
-        self.positions[body] = self.defaultPosition()
-        self.orientations[body] = 0.0
-        self.velocities[body] = Vec2d(0,0)
-        self.accels[body] = Vec2d(0,0)
+        This must be done when using the object in the game!
+        """
+      
+        import tmxloader
+ 
+        self.tmxdata = tmxloader.load_pygame(
+                       self.mappath, force_colorkey=(128,128,0))
+
+        # quadtree for handling collisions with exit tiles
+        rects = []
+        for guid, param in self.exits.items():
+            try:
+                x, y, l = param[0]
+            except:
+                continue
+
+            rects.append(ExitTile((x,y,
+                self.tmxdata.tilewidth, self.tmxdata.tileheight), guid))
+
+        #self.exitQT = QuadTree(rects)
 
 
-    def remove(self, body):
-        if self.inUpdate:
-            self._removeQueue.append(body)
-            return
+    def add(self, thing):
+        #if self.inUpdate:
+        #    self._addQueue.append(body)
+        #    return
 
-        AbstractArea.remove(self, body)
-        del self.positions[body]
-        del self.orientations[body]
-        del self.velocities[body]
-        del self.accels[body]
+        body = Body(self.defaultPosition(), Vec2d(0,0), 0.0, None)
+        self.bodies[thing] = body
+        AbstractArea.add(self, thing)
+        #AbstractArea.add(self, body)
+
+
+    def remove(self, thing):
+        #if self.inUpdate:
+        #    self._removeQueue.append(body)
+        #    return
+
+        AbstractArea.remove(self, thing)
+        del self.bodies[thing]
+
+        # hack
         try:
-            self.drawables.remove(body)
+            self.drawables.remove(thing)
         except IndexError:
             pass
 
 
-    def movePosition(self, body, (x, y, z), push=False, caller=None, \
+    def movePosition(self, body, (x, y, z), push=True, caller=None, \
                      suppress_warp=False, clip=True):
 
         """Attempt to move a body in 3d space.
@@ -189,14 +222,15 @@ class Area(AbstractArea):
         """
 
         movable = 0
-        bbox = self.positions[body].move(x, y, z)
+        originalbbox = body.bbox
+        newbbox = originalbbox.move(x, y, z)
 
         # collides with level geometry, cannot move
-        if self.testCollideGeometry(bbox) and clip:
+        if self.testCollideGeometry(newbbox) and clip:
             return False
 
         # test for collisions with other bodies
-        collide = self.testCollideObjects(bbox)
+        collide = self.testCollideObjects(newbbox)
         try:
             collide.remove(body)
         except:
@@ -217,41 +251,42 @@ class Area(AbstractArea):
             if push and all([ other.pushable for other in collide ]):
 
                 # we are able to move
-                originalPosition = self._oldPositions[body]
-                self._oldPositions[body] = self.positions[body]
-                self.positions[body] = bbox
+                body.oldbbox = body.bbox
+                body.bbox = newbbox
 
                 # recursively push other bodies
                 for other in collide:
                     if not self.movePosition(other, (x, y, z), True):
                         # we collided, so just go back to old position
-                        self.positions[body] = self._oldPositions[body]
-                        self._oldPositions[body] = originalPosition
+                        body.oldbbox = originalbbox
+                        body.bbox = originalbbox
                         return False
 
             else:
                 if clip: return False
 
-        self._oldPositions[body] = self.positions[body]
-        self.positions[body] = bbox
+        body.oldbbox = body.bbox
+        body.bbox = newbbox
 
         self._sendBodyMove(body, caller=caller)
 
+        bbox2 = newbbox.move(0,0,32)
+        tilePos = self.worldToTile(bbox2.topcenter)
         try:
             # emit sounds from bodies walking on them
-            tilePos = self.worldToTile(bbox.bottomcenter)
             prop = self.tmxdata.getTileProperties(tilePos)
-            if not prop == None:
-                name = prop.get('walkSound', None)
-                if not name == None:
-                    self.emitSound(name, bbox.bottomcenter)
         except:
             pass
 
+        else:
+            if not prop == None:
+                name = prop.get('walkSound', False)
+                if name:
+                    self.emitSound(name, newbbox.bottomcenter)
 
         try:
             # test for collisions with exits
-            exits = self.exitQT.hit(self.toRect(bbox))
+            exits = self.exitQT.hit(self.toRect(newbbox))
         except AttributeError:
             exits = []
 
@@ -271,8 +306,8 @@ class Area(AbstractArea):
                 dest = self.getRoot().getChildByGUID(guid)
                 toExit, otherExit = dest.exits[exit.value]
 
-                bx, by, bz = bbox.origin
-                ox, oy, oz = self._oldPositions[body].origin
+                bx, by, bz = newbbox.origin
+                ox, oy, oz = originalbbox.origin
                 bz = 0
 
                 # determine wich direction we are traveling through the exit
@@ -282,13 +317,14 @@ class Area(AbstractArea):
                 newx, newy, newz = toExit
 
                 # create a a bbox to position the object in the new area
-                dx = 16 / 2 - bbox.depth / 2
-                dy = 16 / 2 - bbox.width / 2
+                dx = 16 / 2 - newbbox.depth / 2
+                dy = 16 / 2 - newbbox.width / 2
                 dz = 0
-                bbox = BBox((newx+dx, newy+dy, newz+dz), bbox.size)
+
+                exitbbox = BBox((newx+dx, newy+dy, newz+dz), newbbox.size)
                 face = self.getOrientation(body)
                 dest.add(body)
-                dest.setBBox(body, bbox)
+                dest.setBBox(body, exitbbox)
                 dest.setOrientation(body, face)
                 
 
@@ -311,7 +347,11 @@ class Area(AbstractArea):
         return True 
 
 
-    def setOrientation(self, obj, angle):
+    def getBody(self, thing):
+        return self.bodies[thing]
+
+
+    def setOrientation(self, thing, angle):
         """ Set the angle the object is facing.  Expects radians. """
 
         if isinstance(angle, str):
@@ -319,7 +359,8 @@ class Area(AbstractArea):
                 angle = cardinalDirs[angle]
             except:
                 raise
-        self.orientations[obj] = angle
+
+        self.getBody(thing).o = angle
 
 
     def setLayerGeometry(self, layer, rects):
@@ -351,9 +392,8 @@ class Area(AbstractArea):
                 return node
 
 
-        start = self.worldToTile(self.positions[obj].bottomcenter)
+        start = self.worldToTile(self.bboxes[obj].bottomcenter)
         finish = self._worldToTile((destination[0], destination[1], 0))
-
         path = astar.search(start, finish, factory)
 
 
@@ -362,10 +402,12 @@ class Area(AbstractArea):
         yy = int(y) * self.tmxdata.tilewidth
         return xx, yy, z
 
+    # platformer
     def worldToTile(self, (x, y, z)):
-        xx = int(y) / self.tmxdata.tileheight
-        yy = int(x) / self.tmxdata.tilewidth
-        return xx, yy, z
+        xx = int(y) / self.tmxdata.tilewidth
+        yy = int(z) / self.tmxdata.tileheight
+        zz = 0
+        return xx, yy, zz
 
     def pixelToWorld(self, (x, y, z)):
         return (y, x, z)
@@ -383,35 +425,36 @@ class Area(AbstractArea):
     def update(self, time):
         self.inUpdate = True
         self.time += time
+
         [ sound.update(time) for sound in self.sounds ]
-        [ body.update(time) for body in self.positions ]
-        [ self.updatePhysics(body, time) for body in self.positions ]
+        [ self.updatePhysics(body, time) for body in self.bodies ]
+        [ body.update(time) for body in self.bodies ]
 
-        self.inUpdate = False
-        [ self.add(body) for body in self._addQueue ]
-        [ self.remove(body) for body in self._removeQueue ]
-        self._addQueue = []
-        self._removeQueue = []
+        return
 
+        # awkward looping allowing objects to be added/removed during update
+        self.tempPositions = {}
+        while self.bboxes:
+            body, position = self.bboxes.popitem()
+            self.tempPositions[body] = position
+            body.update(time)
+            self.updatePhysics(body, time)
 
-    # for platformers
-    def applyForce(self, body, (x, y, z)):
-        self.accels[body] += Vec2d(y, z)
+        self.bboxes = self.tempPositions
 
-
-    def setForce(self, body, (x, y, z)):
-        self.accels[body] = Vec2d(y, z)
         
 
-    def updatePhysics(self, body, time):
+    # 2d physics only
+    def updatePhysics(self, thing, time):
         """
         basic gravity
         """
       
         time = time / 100
+        body = self.getBody(thing)
+        a = body.acc
 
-        a = self.accels[body]
-
+        # de-accel vertical movement
         if not self.grounded(body) and a.y < 0:
             a += (0, .5)
 
@@ -422,16 +465,23 @@ class Area(AbstractArea):
     
         # v is our velocity
         y, z = v
-        self.accels[body] = a
+        body.acc = a
 
-        self.movePosition(body, (0, y, 0))
-        self.movePosition(body, (0, 0, z))
+        if not y==0:
+            self.movePosition(body, (0, y, 0))
 
+        if not z==0: 
+            falling = self.movePosition(body, (0, 0, z))
+            if falling and not body.isFalling:
+                body.isFalling = True
+            elif not falling and body.isFalling:
+                body.isFalling = False
+            
 
     # platformer
     def grounded(self, body):
         # return if the body is at rest on the ground
-        bbox = self.positions[body].move(0,0,1)
+        bbox = body.bbox.move(0,0,1)
         return self.testCollideGeometry(bbox)
 
 
@@ -464,14 +514,14 @@ class Area(AbstractArea):
 
 
     def testCollideObjects(self, bbox):
-        values = []
-        keys = []
+        bboxes = []
+        bodies = []
 
-        for body, b in self.positions.items():
-            values.append(b)
-            keys.append(body)
+        for body in self.bodies.values():
+            bboxes.append(body.bbox)
+            bodies.append(body)
 
-        return [ keys[i] for i in bbox.collidelistall(values) ]
+        return [ bodies[i] for i in bbox.collidelistall(bboxes) ]
 
 
     def testCollideGeometryAll(self):
@@ -479,43 +529,27 @@ class Area(AbstractArea):
         pass
 
 
-    def getBBox(self, body):
-        """ Return a bbox that represents this body in world """
-        return self.positions[body]
-
-
-    def setBBox(self, body, bbox):
+    def setBBox(self, thing, bbox):
         """ Attempt to set a bodies bbox.  Returns True if able. """
 
         if not isinstance(bbox, BBox):
             bbox = BBox(bbox)
 
-        if self.testCollide(bbox):
-            return False
-        else:
-            self.positions[body] = bbox
-            self._oldPositions[body] = bbox
-            return True
-    
+        body = self.getBody(thing)
+        body.oldbbox = body.bbox
+        body.bbox = bbox
+
 
     def testCollide(self, bbox):
         return False
 
 
-    def getSize(self, body):
-        """ Return 3d size of the body """
 
-        return self.positions[body].size
 
 
     def getPositions(self):
-        return [ (o, b.origin) for (o, b) in self.positions.items() ]
+        return [ (o, b.origin) for (o, b) in self.bboxes.items() ]
 
-
-    def getOrientation(self, body):
-        """ Return the angle body is facing in radians """
-
-        return self.orientations[body]
 
     # for platformers
     def toRect(self, bbox):
@@ -523,11 +557,11 @@ class Area(AbstractArea):
 
 
     def getOldPosition(self, body):
-        return self._oldPositions[body]
+        return self._oldbboxes[body]
 
 
     def _sendBodyMove(self, body, caller, force=None):
-        position = self.getPosition(body)
+        position = body.bbox.origin
         bodyAbsMove.send(sender=self, body=body, position=position, caller=caller, force=force)
 
 
@@ -540,12 +574,44 @@ class Area(AbstractArea):
         pass
 
 
-    def getPosition(self, body):
-        return self.positions[body].origin
+
+    #  CLIENT API  --------------
+
+    # for platformers
+    def applyForce(self, thing, (x, y, z)):
+        self.bodies[thing].acc += Vec2d(y, z)
+
+
+    def setForce(self, thing, (x, y, z)):
+        self.bodies[thing].acc = Vec2d(y, z)
+
+
+    def getOrientation(self, thing):
+        """ Return the angle thing is facing in radians """
+        return self.bodies[thing].o
+
+
+    def setPosition(self, thing, origin):
+        body = self.bodies[thing]
+        body.bbox = BBox(origin, body.bbox.size)
+
+
+    def getSize(self, thing):
+        """ Return 3d size of the object """
+        return self.bodies[thing].bbox.size
+
+
+    def getPosition(self, thing):
+        """ for clients to find position in world of things, not bodies """
+        return self.bodies[thing].bbox.origin
+
+
+    def getBody(self, thing):
+        return self.bodies[thing]
 
 
     def stick(self, body):
-        self.setPosition(body, self._oldPositions[body])        
+        pass
 
 
     def unstick(self, body):

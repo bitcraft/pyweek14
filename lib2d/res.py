@@ -26,10 +26,10 @@ simple:
 """
 
 import pygame
-import os.path
+import sys, os.path
 
 
-DEBUG = False
+DEBUG = True
 
 def debug(text):
     if DEBUG: sys.stdout.write(text)

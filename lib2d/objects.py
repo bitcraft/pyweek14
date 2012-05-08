@@ -37,6 +37,8 @@ class GameObject(object):
         self._parent    = parent
         self._childrenGUID = []  # children of this object by guid !dont use
         self.guid = None
+        self.isFalling = False
+        self.isAlive = True
 
 
     def returnNew(self):
@@ -74,6 +76,8 @@ class GameObject(object):
         # override this for objects that can contain other types
         if what == None: what = self._parent
         return self._parent.getPosition(what)
+        #if what == None: what = self
+        #return self._parent.getPosition(what)
 
 
     def getOrientation(self, what=None):

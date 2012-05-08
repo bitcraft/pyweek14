@@ -3,6 +3,31 @@
  <tileset firstgid="1" source="controlset.tsx"/>
  <tileset firstgid="1905" name="level0" tilewidth="16" tileheight="16">
   <image source="../tilesets/level0.png" width="256" height="64"/>
+  <tile id="16">
+   <properties>
+    <property name="walkSound" value="step.wav"/>
+   </properties>
+  </tile>
+  <tile id="17">
+   <properties>
+    <property name="walkSound" value="step.wav"/>
+   </properties>
+  </tile>
+  <tile id="18">
+   <properties>
+    <property name="walkSound" value="step.wav"/>
+   </properties>
+  </tile>
+  <tile id="19">
+   <properties>
+    <property name="walkSound" value="step.wav"/>
+   </properties>
+  </tile>
+  <tile id="20">
+   <properties>
+    <property name="walkSound" value="step.wav"/>
+   </properties>
+  </tile>
  </tileset>
  <layer name="Background" width="45" height="45">
   <data encoding="base64" compression="gzip">

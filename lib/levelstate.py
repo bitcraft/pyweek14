@@ -13,41 +13,33 @@ from operator import itemgetter
 import pygame
 import os.path
 
+import time
+
 debug = 1
 
 movt_fix = 1/sqrt(2)
 
 
-class ExitTile(FrozenRect):
-    def __init__(self, rect, exit):
-        FrozenRect.__init__(self, rect)
-        self._value = exit
+class SoundManager(object):
+    def __init__(self):
+        self.sounds = {}
+        self.last_played = {}
 
-    def __repr__(self):
-        return "<ExitTile ({}, {}, {}, {}): {}>".format(
-            self._left,
-            self._top,
-            self._width,
-            self._height,
-            self._value)
+    def loadSound(self, name, filename):
+        self.sounds[filename] = res.loadSound(filename)
+        self.last_played[filename] = 0
 
-class ControllerHandler(object):
-    """
-    Some kind of glue between the input of the player and the actions
-    he is allowed to make.  New territory here.
-    """
-
-    def __init__(self, controller, model):
-        self.model = model
+    def play(self, name, volume=1.0):
+        now = time.time()
+        if self.last_played[name] + .1 <= now:
+            self.last_played[name] = now
+            sound = self.sounds[name]
+            sound.set_volume(volume)
+            sound.stop()
+            sound.play()
 
 
-    def getActions(self):
-        """
-        Return a list of actions the character is allowed to make at the
-        moment
-        """
-
-        pass
+SoundMan = SoundManager()
 
 
 class LevelState(GameState):
@@ -83,14 +75,12 @@ class LevelState(GameState):
     def __init__(self, area, startPosition=None):
         GameState.__init__(self)
         self.area = area
-        self.heroOnExit = False         # use this flag when warping
-        self.background = (203, 204, 177)
-        self.foreground = (0, 0, 0)
-        self.blank = True
 
 
     def activate(self):
-        self.sounds = {}
+        self.blank = True
+        self.background = (203, 204, 177)
+        self.foreground = (0, 0, 0)
 
         self.msgFont = pygame.font.Font((res.fontPath("volter.ttf")), 9)
         self.border = gui.GraphicBox("dialog2-h.png", hollow=True)
@@ -98,6 +88,9 @@ class LevelState(GameState):
         self.player_vector = (0,0,0)
         self.old_player_vector = (0,0,0)
         self.hero_jump = 27
+
+        # allow the area to get needed data
+        self.area.load()
 
         # get the root and the hero from it
         root = self.area.getRoot()
@@ -108,16 +101,12 @@ class LevelState(GameState):
         if not self.area.hasChild(self.hero):
             self.area.add(self.hero)
 
-        # load the tmx data here.  it will be shared with the camera.
-        self.tmxdata = tmxloader.load_pygame(
-                       self.area.mappath, force_colorkey=(128,128,0))
-
         # attach a camera
         sw, sh = sd.get_size()
         mw = sw * .75
         mh = sh * .75
         self.camera = LevelCamera(self.area,((4,4), (mw, mh)),
-                                  tmxdata=self.tmxdata)
+                                  tmxdata=self.area.tmxdata)
 
         self.mapBorder = pygame.Rect((0,0,mw+6,mh+6))
         self.msgBorder = pygame.Rect((0,mh,sw,sh-mh))
@@ -129,27 +118,15 @@ class LevelState(GameState):
             res.playMusic(self.tmxdata.music)
         except AttributeError:
             res.fadeoutMusic()
-            
-        # quadtree for handling collisions with exit tiles
-        rects = []
-        for guid, param in self.area.exits.items():
-            try:
-                x, y, l = param[0]
-            except:
-                continue
-            rects.append(ExitTile((x,y,
-                self.tmxdata.tilewidth, self.tmxdata.tileheight),
-                guid))
-
-        #self.exitQT = QuadTree(rects)
-
+        
+    
         # load tile sounds
-        for i, layer in enumerate(self.tmxdata.tilelayers):
-            props = self.tmxdata.getTilePropertiesByLayer(i)
+        for i, layer in enumerate(self.area.tmxdata.tilelayers):
+            props = self.area.tmxdata.getTilePropertiesByLayer(i)
             for gid, tileProp in props:
                 for key, value in tileProp.items():
                     if key[4:].lower() == "sound":
-                        self.sounds[value] = res.loadSound(value)
+                        SoundMan.loadSound(key, value)
 
 
     def deactivate(self):
@@ -208,31 +185,27 @@ class LevelState(GameState):
         self.area.update(time)
         self.camera.update(time)
 
-        g = self.area.grounded(self.hero)
+        #g = self.area.grounded(self.hero)
 
         # true when landing after a fall
-        if self.hero.isFalling and g:
-            self.hero.isFalling = False
-            self.area.setForce(self.hero, self.player_vector)
-            self.hero.avatar.play("stand")
+        #if self.hero.isFalling and g:
+        #    self.area.setForce(self.hero, self.player_vector)
+        #    self.hero.avatar.play("stand")
 
         # don't move around if not needed
         if not self.player_vector == self.old_player_vector:
             x, y, z = self.player_vector
 
-            g = self.area.grounded(self.hero)
-            if g:
-                if self.hero.isFalling:
-                    self.hero.isFalling = False
+            #g = self.area.grounded(self.hero)
+            #if g:
+            #    self.area.setForce(self.hero, (x,y,0))
 
+            #    if not self.hero.avatar.isPlaying("crouch"):
+            #        self.area.applyForce(self.hero, (0,0,z))
+
+            if not self.hero.isFalling:
                 self.area.setForce(self.hero, (x,y,0))
 
-                if not self.hero.avatar.isPlaying("crouch"):
-                    self.area.applyForce(self.hero, (0,0,z))
-
-            # true when not grounded and letting go of controls
-            elif x==y==0:
-                self.hero.isFalling = True
 
             # true when idle and grounded
             if y==0 and z==0 and not self.hero.isFalling:
@@ -289,14 +262,15 @@ class LevelState(GameState):
                     self.hero.attack()
 
                 elif cmd == P1_DOWN:
-                    if self.area.grounded(self.hero):
-                        self.hero.avatar.play("crouch", loop_frame=4)
+                    #if self.area.grounded(self.hero):
+                    self.hero.avatar.play("crouch", loop_frame=4)
 
             # don't rotate the player if he's grabbing something
             #if not self.hero.arms == GRAB:
             #    self.area.setOrientation(self.hero, atan2(x, y))
 
         self.player_vector = x, y*self.hero.move_speed, z
+
 
 @receiver(emitSound)
 def playSound(sender, **kwargs):
