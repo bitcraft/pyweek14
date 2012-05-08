@@ -79,7 +79,8 @@ class LevelState(GameState):
 
     def activate(self):
         self.blank = True
-        self.background = (203, 204, 177)
+        #self.background = (203, 204, 177)
+        self.background = (109, 109, 109)
         self.foreground = (0, 0, 0)
 
         self.msgFont = pygame.font.Font((res.fontPath("volter.ttf")), 9)
@@ -159,6 +160,7 @@ class LevelState(GameState):
             self.blank = False
             surface.fill(self.background)
             self.drawSidebar(surface, self.hudBorder)
+            self.border.draw(surface, self.msgBorder)
 
         # the main map
         self.camera.center(self.area.getPosition(self.hero))
@@ -169,7 +171,6 @@ class LevelState(GameState):
             self.blank = True
 
         # borders
-        #self.borderFilled.draw(surface, self.msgBorder)
         self.border.draw(surface, self.mapBorder)
 
         #log = "\n".join(self.area.messages[-5:])
