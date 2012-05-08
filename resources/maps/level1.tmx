@@ -14,9 +14,9 @@
    H4sIAAAAAAAAA+3TMQ0AMAwEsd+CvUVdDJmqKDaCWy4BAAAAAAAAOk4lt35XwF6TH3y0/DsMpB8AAA==
   </data>
  </layer>
- <layer name="Control" width="45" height="45">
+ <layer name="Control" width="45" height="45" visible="0">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3OIQ4AIAwEwbpqnsr/DaqWpIJQMZOsO3ERAAAAAAAAALOt3wcYaee9zvZ15QD4JE5ZpB8AAA==
+   H4sIAAAAAAAAA+3OsQkAMAgAQbvUjur+jVU2ECTkDr7/CAAAAAAAAACm5fbAB+q809VbWY0ypB8AAA==
   </data>
  </layer>
 </map>

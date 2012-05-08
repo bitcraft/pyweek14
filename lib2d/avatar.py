@@ -299,7 +299,9 @@ class Animation(GameObject):
     TODO: implement some sort of timing, rather than relying on frames
     """
 
-    def __init__(self, filename, name, frames, directions=1, timing=None):
+    def __init__(self, filename, name, frames, directions=1, timing=None,
+                 order=None):
+
         GameObject.__init__(self)
 
         self.filename = filename

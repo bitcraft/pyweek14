@@ -27,7 +27,7 @@ class LevelCamera(object):
 
         self.map_width = tmxdata.tilewidth * tmxdata.width
         self.map_height = tmxdata.tileheight*tmxdata.height
-        self.center(self.extent.center)
+        #self.center(self.extent.center)
         self.blank = True
 
         # load the children
@@ -101,7 +101,7 @@ class LevelCamera(object):
             d, w, h = a.getSize()
             x, y = self.toSurface(a.getPosition())
 
-            rect = Rect((x-(aWidth-w)/2, y-aHeight+d, aWidth, aHeight))
+            rect = Rect((x-(aWidth-w)/2, y-aHeight, aWidth, aHeight))
             if self.extent.colliderect(rect):
                 x, y = self.toScreen(a.getPosition())
                 x += self.rect.left
@@ -121,18 +121,12 @@ class LevelCamera(object):
         """
 
         x = pos[1] * self.zoom - self.extent.left
-        y = pos[0] * self.zoom - self.extent.top
-
-        # if there is a z value, just subtract it from y
-        try:
-            y -= pos[2]
-        except:
-            pass
+        y = pos[2] * self.zoom - self.extent.top
 
         return x, y
 
 
     def toSurface(self, pos):
         """ Translate world coordinates to coordinates on the surface """
-        return pos[1], pos[0]
+        return pos[1], pos[2]
 

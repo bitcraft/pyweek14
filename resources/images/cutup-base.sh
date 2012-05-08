@@ -5,4 +5,4 @@ convert base.png -crop 384x64+640+0 +repage wait.png
 convert base.png -crop 640x64+0+64 +repage walk.png
 convert base.png -crop 1024x64+0+128 +repage run.png
 convert base.png -crop 1088x64+0+192 +repage sprint.png
-
+convert base.png -crop 256x64+512+256 +repage jump.png

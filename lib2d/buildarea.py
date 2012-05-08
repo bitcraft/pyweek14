@@ -15,7 +15,7 @@ def fromTMX(parent, mapname):
     # for platformer maps
     def toWorld(data, (x, y, l)):
         """ translate tiled map coordinates to world coordinates """
-        return y*data.tileheight, 0, x*data.tilewidth
+        return 0, x*data.tileheight, (y-1)*data.tilewidth
 
 
     area = Area()
@@ -32,12 +32,13 @@ def fromTMX(parent, mapname):
     props = data.getTilePropertiesByLayer(-1)
 
 
-    # load the level geometry and set it 
+    # load the level geometry from the 'control' layer 
     rects = []
     for rect in tmxloader.buildDistributionRects(data, -1):
         # translate the tiled coordinates to world coordinates
+        # for platformers
         x, y, sx, sy = rect
-        rects.append(Rect(y,x,sy,sx))
+        rects.append(Rect(x,y,sx,sy))
     area.setLayerGeometry(0, rects)
 
 
@@ -50,14 +51,14 @@ def fromTMX(parent, mapname):
             msg = "control gid: {} is used in more than one locaton"
             raise Exception, msg.format(gid)
 
-        x, y, z = toWorld(data, pos[0])
-        z += data.tileheight     # needed to position bodies correctly
-        y += data.tilewidth / 2  # needed to position bodies correctly
+        x, y, z = toWorld(data, pos.pop())
+        #z += data.tileheight     # needed to position bodies correctly
+        #y += data.tilewidth / 2  # needed to position bodies correctly
         body = area._parent.getChildByGUID(int(prop['guid']))
 
         area.add(body)
         d, w, h = (8, 32, 32)
-        bbox = BBox(x-d, y, z-h, d, w, h)
+        bbox = BBox(x, y, z-h, d, w, h)
         area.setBBox(body, bbox)
         area.setOrientation(body, "south")
 
