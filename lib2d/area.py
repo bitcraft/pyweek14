@@ -145,6 +145,8 @@ class Area(AbstractArea):
         self._removeQueue = []
         self.drawables = []      # HAAAAKCCCCKCK
 
+        self.inUpdate = False
+        self._removeQueue = []
 
     def load(self):
         """Load the data from a TMX file that is required for this map
@@ -183,9 +185,9 @@ class Area(AbstractArea):
 
 
     def remove(self, thing):
-        #if self.inUpdate:
-        #    self._removeQueue.append(body)
-        #    return
+        if self.inUpdate:
+            self._removeQueue.append(thing)
+            return
 
         AbstractArea.remove(self, thing)
         del self.bodies[thing]
@@ -427,12 +429,24 @@ class Area(AbstractArea):
         self.time += time
 
         [ sound.update(time) for sound in self.sounds ]
-        [ self.updatePhysics(body, time) for body in self.bodies ]
-        [ body.update(time) for body in self.bodies ]
+
+        # awkward looping allowing objects to be added/removed during update
+        counter = 0
+        self.inUpdate = True
+        while counter <= len(self.bodies):
+            body = self.bodies[counter]
+            self.physicsUpdate(body, time)
+            body.update(time)
+
+        self.inUpdate = False
+        [ self.remove(thing) for thing in self._removeQueue ] 
+        self.toRemove = []
 
         return
 
-        # awkward looping allowing objects to be added/removed during update
+        [ self.updatePhysics(body, time) for body in self.bodies ]
+        [ body.update(time) for body in self.bodies ]
+
         self.tempPositions = {}
         while self.bboxes:
             body, position = self.bboxes.popitem()
