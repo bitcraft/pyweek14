@@ -63,7 +63,7 @@ def init():
     global screen_dim
 
     # determine if we can use hardware accelerated surfaces or not
-    pygame.display.set_caption("RPG World Test")
+    pygame.display.set_caption("robots!")
 
 # is it redundant to have a pygame buffer, and one for pixalization?  maybe...
 
