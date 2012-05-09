@@ -1,7 +1,6 @@
 from lib2d.tilemap import BufferedTilemapRenderer
 from lib2d.objects import AvatarObject
-
-from pygame.rect import Rect
+from pygame import Rect, draw
 
 
 
@@ -94,38 +93,45 @@ class LevelCamera(object):
 
 
     def draw(self, surface):
-        avatars = [ o.avatar for o in self.area.getChildren()
-                    if hasattr(o, "avatar") ]
+        avatarobjects = [ i for i in self.area.getChildren()
+                         if isinstance(i, AvatarObject) ]
         onScreen = []
 
-        for a in avatars:
-            aWidth, aHeight = a.get_size()
-            d, w, h = a.getSize()
-            x, y = self.toSurface(a.getPosition())
+        for a in avatarobjects:
+            x, y, z, d, w, h, = self.area.getBBox(a)
+            x, y = self.toSurface((x, y, z))
+            xx, yy = a.avatar.axis
+            x += xx
+            y += yy + h
+            if self.extent.colliderect((x, y, w, h)):
+                onScreen.append((a, Rect(self.toScreen((x, y)), (w, h))))
 
-            rect = Rect((x-(aWidth-w)/2, y-aHeight, aWidth, aHeight))
-            if self.extent.colliderect(rect):
-                x, y = self.toScreen(a.getPosition())
-                x += self.rect.left
-                y += self.rect.top
-                rect = Rect((x-(aWidth-w)/2, y-aHeight+d*2, aWidth, aHeight))
-                onScreen.append((a, rect))
-
-        onScreen = [ (a.image, r, 2) for a, r in onScreen ]
+        onScreen = [ (a.avatar.image, r, 2, a) for a, r in onScreen ]
         #onScreen.sort(key=screenSorter)
 
-        return self.maprender.draw(surface, onScreen)
+        dirty = self.maprender.draw(surface, onScreen)
+
+        clip = surface.get_clip()
+        surface.set_clip(self.rect)
+        for (x, y, w, h) in self.area.geoRect:
+            draw.rect(surface, (128,128,255), \
+            (self.toScreen(self.toSurface((0, x, y))), (w, h)), 1)
+        for i, r, l, a in onScreen:
+            x, y, z, d, w, h, = self.area.getBBox(a)
+            x, y = self.toScreen(self.toSurface((x, y, z+h)))
+            draw.rect(surface, (255,128,128), (x, y, w, h), 1)
+
+        surface.set_clip(clip)
+        return dirty
 
 
-    def toScreen(self, pos):
+    def toScreen(self, (x, y)):
         """
         Transform the world to coordinates on the screen
         """
 
-        x = pos[1] * self.zoom - self.extent.left
-        y = pos[2] * self.zoom - self.extent.top
-
-        return x, y
+        return (x * self.zoom - self.extent.left + self.rect.left,
+                y * self.zoom - self.extent.top + self.rect.top)
 
 
     def toSurface(self, pos):

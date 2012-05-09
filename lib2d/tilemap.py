@@ -285,14 +285,14 @@ class BufferedTilemapRenderer(object):
     
         surfaces may optionally be passed that will be blited onto the surface.
         this must be a list of tuples containing a layer number, image, and
-        rect in screen coordinates.  surfaces will be drawn in oder passed,
+        rect in screen coordinates.  surfaces will be drawn in order passed,
         and will be correctly drawn with tiles from a higher layer overlap
         the surface.
 
         passing a list here will correctly draw the surfaces to create the
         illusion of depth.
 
-        TODO: make sure the soccrect rects are returned for dirty updates
+        TODO: make sure the rects are returned for dirty updates
         """
 
         if self.blank:

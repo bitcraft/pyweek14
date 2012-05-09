@@ -188,8 +188,12 @@ class Area(AbstractArea):
         #self.exitQT = QuadTree(rects)
 
 
-    def add(self, thing):
-        body = Body(self.defaultPosition(), Vec2d(0,0), Vec2d(0,0), 0.0, parent=thing)
+    def add(self, thing, pos=None):
+        if pos == None:
+            pos = self.defaultPosition().origin
+
+        body = Body(BBox(pos, thing.size), Vec2d(0,0), Vec2d(0,0), 0.0, \
+                    parent=thing)
         self.bodies[thing] = body
         AbstractArea.add(self, thing)
         #AbstractArea.add(self, body)
@@ -382,8 +386,6 @@ class Area(AbstractArea):
 
         import quadtree
 
-        print rects
-
         self.geometry[layer] = quadtree.FastQuadTree(rects)
         self.geoRect = rects
 
@@ -409,10 +411,10 @@ class Area(AbstractArea):
         path = astar.search(start, finish, factory)
 
 
-    def tileToWorld(self, (x, y, z)):
-        xx = int(x) * self.tmxdata.tileheight
-        yy = int(y) * self.tmxdata.tilewidth
-        return xx, yy, z
+    #def tileToWorld(self, (x, y, z)):
+    #    xx = int(x) * self.tmxdata.tileheight
+    #    yy = int(y) * self.tmxdata.tilewidth
+    #    return xx, yy, z
 
     # platformer
     def worldToTile(self, (x, y, z)):
@@ -444,13 +446,14 @@ class Area(AbstractArea):
         counter = 0
         offset = 0
         things = self.bodies.keys()
-        while counter + offset < len(self.bodies):
+        while counter + offset < len(things):
             try:
                 thing = things[counter]
             except IndexError:
                 things = [ t for t in self.bodies.keys() if not t in things ]
-                offset = counter
                 counter = 0
+                #offset = counter
+                #counter = 0
                 continue
 
             self.updatePhysics(self.bodies[thing], time)
@@ -461,21 +464,6 @@ class Area(AbstractArea):
         [ self.remove(thing) for thing in self._removeQueue ] 
         self._removeQueue = []
 
-        return
-
-        [ self.updatePhysics(body, time) for body in self.bodies ]
-        [ body.update(time) for body in self.bodies ]
-
-        self.tempPositions = {}
-        while self.bboxes:
-            body, position = self.bboxes.popitem()
-            self.tempPositions[body] = position
-            body.update(time)
-            self.updatePhysics(body, time)
-
-        self.bboxes = self.tempPositions
-
-        
 
     # 2d physics only
     def updatePhysics(self, body, time):
@@ -488,7 +476,7 @@ class Area(AbstractArea):
 
         # de-accel vertical movement
         if not self.grounded(body) and a.y < 0:
-            a += (0, .5)
+            a += (0, 1)
 
         v = a * time
 
@@ -561,22 +549,6 @@ class Area(AbstractArea):
         pass
 
 
-    def setBBox(self, thing, bbox):
-        """ Attempt to set a bodies bbox.  Returns True if able. """
-
-        if not isinstance(bbox, BBox):
-            bbox = BBox(bbox)
-
-        body = self.getBody(thing)
-        body.oldbbox = body.bbox
-        body.bbox = bbox
-
-
-    def testCollide(self, bbox):
-        return False
-
-
-
 
 
     def getPositions(self):
@@ -596,7 +568,7 @@ class Area(AbstractArea):
         position = body.bbox.origin
         bodyAbsMove.send(sender=self, body=body, position=position, caller=caller, force=force)
 
-
+    
     def warpBody(self):
         """
         move a body to another area using an exit tile.
@@ -608,6 +580,25 @@ class Area(AbstractArea):
 
 
     #  CLIENT API  --------------
+
+    def isGrounded(self, thing):
+        return self.grounded(self.bodies[thing])
+
+
+    def getBBox(self, thing):
+        return self.bodies[thing].bbox
+
+
+    def setBBox(self, thing, bbox):
+        """ Attempt to set a bodies bbox.  Returns True if able. """
+
+        if not isinstance(bbox, BBox):
+            bbox = BBox(bbox)
+
+        body = self.getBody(thing)
+        body.oldbbox = body.bbox
+        body.bbox = bbox
+
 
     # for platformers
     def applyForce(self, thing, (x, y, z)):

@@ -33,6 +33,7 @@ class GameObject(object):
         self.name       = ""
         self.pushable   = False
         self.weight     = 1
+        self.size       = (32, 32, 32)
         self._children  = []
         self._parent    = parent
         self._childrenGUID = []  # children of this object by guid !dont use

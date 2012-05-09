@@ -88,7 +88,7 @@ class LevelState(GameState):
         self.borderFilled = gui.GraphicBox("dialog2.png")
         self.player_vector = (0,0,0)
         self.old_player_vector = (0,0,0)
-        self.hero_jump = 27
+        self.hero_jump = 35
 
         # allow the area to get needed data
         self.area.load()
@@ -186,27 +186,27 @@ class LevelState(GameState):
         self.area.update(time)
         self.camera.update(time)
 
-        #g = self.area.grounded(self.hero)
+        g = self.area.isGrounded(self.hero)
 
         # true when landing after a fall
-        #if self.hero.isFalling and g:
-        #    self.area.setForce(self.hero, self.player_vector)
-        #    self.hero.avatar.play("stand")
+        if self.hero.isFalling and g:
+            self.area.setForce(self.hero, self.player_vector)
+            self.hero.avatar.play("stand")
 
         # don't move around if not needed
         if not self.player_vector == self.old_player_vector:
             x, y, z = self.player_vector
 
-            #g = self.area.grounded(self.hero)
             #if g:
             #    self.area.setForce(self.hero, (x,y,0))
 
             #    if not self.hero.avatar.isPlaying("crouch"):
             #        self.area.applyForce(self.hero, (0,0,z))
 
-            if not self.hero.isFalling:
+            if self.hero.isFalling:
                 self.area.setForce(self.hero, (x,y,0))
-
+            else:
+                self.area.setForce(self.hero, (x,y,z))
 
             # true when idle and grounded
             if y==0 and z==0 and not self.hero.isFalling:
@@ -217,7 +217,7 @@ class LevelState(GameState):
                 pass
 
             # true when moving and not jumping
-            elif not z:
+            elif z==0:
                 self.hero.avatar.play("run")
             
             self.old_player_vector = tuple(self.player_vector)
@@ -229,13 +229,16 @@ class LevelState(GameState):
         y = 0
         z = 0
 
+        playing = self.hero.avatar.curAnimation.name
+
         for cls, cmd, arg in cmdlist:
             if arg == BUTTONUP:
                 #if cmd == P1_UP:
                 #    self.player_vector.x = 0
                 if cmd == P1_DOWN:
-                    if self.hero.avatar.isPlaying("crouch"):
+                    if playing == "crouch":
                         self.hero.avatar.play("uncrouch", loop=0)
+
                 elif cmd == P1_LEFT:
                     y = 0
                 elif cmd == P1_RIGHT:
@@ -254,21 +257,20 @@ class LevelState(GameState):
                 elif cmd == P1_RIGHT:
                     y = 1
                     self.hero.avatar.flip = 0
+
                 elif cmd == P1_ACTION2:
                     z = -self.hero_jump
+
+                elif cmd == P1_DOWN:
+                    if self.area.isGrounded(self.hero) and (
+                    playing == "stand"):
+                        self.hero.avatar.play("crouch", loop_frame=4)
 
             # these actions will not repeat if button is held
             if arg == BUTTONDOWN:
                 if cmd == P1_ACTION1:
                     self.hero.attack()
 
-                elif cmd == P1_DOWN:
-                    #if self.area.grounded(self.hero):
-                    self.hero.avatar.play("crouch", loop_frame=4)
-
-            # don't rotate the player if he's grabbing something
-            #if not self.hero.arms == GRAB:
-            #    self.area.setOrientation(self.hero, atan2(x, y))
 
         self.player_vector = x, y*self.hero.move_speed, z
 

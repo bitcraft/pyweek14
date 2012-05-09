@@ -59,16 +59,16 @@ from time import time as ms
 from collections import deque
 from pygame.locals import *
 
-import cPickle as pickle
+
 
 # only have one child, an avatar.
 class FSA(object):
 	def __init__(self, avatar):
-		self.avatar = avatar		# avatar we are attached to
-		self.combos = {}			# input combos
-		self.holds = {}			# keep track of state changes from holds
-		self.hold = 0				# keep track of buttons held down
-		self.state_transitions=deque() # conditions for changing animations
+		self.avatar = avatar	    	# avatar we are attached to
+		self.combos = {}			    # input combos
+		self.holds = {}			        # keep track of state changes from holds
+		self.hold = 0				    # keep track of buttons held down
+		self.state_transitions=deque()  # conditions for changing animations
 		avatar.set_fsa(self)
 		self.locked = False
 
@@ -76,7 +76,6 @@ class FSA(object):
 		self.move_history = []
 
 	def reset(self):
-		print "RESET"
 		self.locked = False
 		self.holds = {}
 		self.hold =  0
@@ -84,11 +83,9 @@ class FSA(object):
 
 	def lock(self):
 		self.locked = True
-		print self, "lock"
 		
 	def unlock(self):
 		self.locked = False
-		print self, "unlock"
 
 	def check_hold(self, state):
 		""" avatar wants to change the animation (usually just the frame,
@@ -111,7 +108,6 @@ class FSA(object):
 			return False
 		else:
 			for cmd, a in self.holds.items():
-				print "check:", self.hold, cmd, a, anim, self.hold & cmd
 				if ((self.hold & cmd) == cmd) and (a == anim):			
 					debug("DENY state change req. %s %s\n" % (state, self.hold))
 					return True
@@ -143,8 +139,6 @@ class FSA(object):
 			state1 = ( self.avatar.get_animation(state1), frame1 )
 			state2 = ( self.avatar.get_animation(state2), frame2 )
 		except KeyError:
-			print "Error while setting up fighter."
-			print "Animation does not exist."
 			raise
 
 		# index:  0      1       2       3
@@ -180,7 +174,6 @@ class FSA(object):
 		# return a state if possible
 		#print "===================================================="
 		for t in self.state_transitions:
-			#print t
 			t_frame = t[1][1]
 			if (t[0] & cmd == cmd) and (t[1][0] == state[0]):
 				if (t_frame == state[1]) or (t_frame == -1):
@@ -189,9 +182,6 @@ class FSA(object):
 
 	def process(self, cmd, pressed):
 		state = self.avatar.state
-
-		print "keys:", cmd, self.hold, pressed
-
 		if pressed:
 			self.hold += cmd
 			state = self.check_change(cmd, state)
@@ -218,13 +208,10 @@ class FSA(object):
 
 				# still holding a key
 				if self.hold != 0:
-					print "holding..."
-					print self.hold, state
 					t = self.get_transition(self.hold, state)
 					if t != False:
 						debug("hold: %s\n" % self.hold)
 						if t[3] & STICKY == STICKY:
-							print "stick!", t[2]
 							return t[2]
 
 		return False
@@ -262,114 +249,4 @@ class FSA(object):
 	def update(self, time):
 		pass
 
-class LoggingFSA(FSA):
-	def __init__(self, avatar):
-		self.log = deque()
-		self.timer = None
-		self.record = False
-		self.playing = False
-		self.virtual_hold = False
-		super(LoggingFSA, self).__init__(avatar)
 
-	def check_hold(self, state):
-		hold = super(LoggingFSA, self).check_hold(state)
-
-		if self.record:
-			#if hold == True and self.virtual_hold == False:
-            if hold and not self.virtual_hold:
-					self.virtual_hold = True
-					self.log.append((self.get_time(), HOLD_TOKEN))
-
-			#if hold == False and self.virtual_hold == True:
-            if not hold and self.virtual_hold:
-					self.virtual_hold = False
-					self.log.append((self.get_time(), UNHOLD_TOKEN))
-
-		if self.playing:
-			return self.virtual_hold
-		else:
-			return hold
-
-	def update(self, time):
-		if self.playing:
-			try:
-				t = self.log[0][0]
-			except:
-				self.stop_playing()
-				return
-
-			if t <= self.get_time():
-				f = self.log.popleft()
-				self.handle_frame(f)
-
-	def handle_frame(self, frame):
-		# this will fail if there is a token in the que
-		kind = frame[1]
-		if kind == ANIMATION_CHANGE_TOKEN:
-			self.avatar.play(*frame[2])
-
-		elif kind == HOLD_TOKEN:
-			self.virtual_hold = True
-
-		elif kind == UNHOLD_TOKEN:
-			self.virtual_hold = False
-
-		#debug("frame: %s\n" % frame)
-
-	def start_playing(self):
-		debug("playing %s\n" % self.log)
-		if len(self.log) > 0:
-			self.stop_recording()
-			self.playing = True
-			self.reset_time()
-
-	def stop_playing(self):
-		self.playing = False
-
-	def start_recording(self):
-		self.log = deque()
-		self.stop_playing()
-		self.reset_time()
-		self.record = True
-
-	# not a true pause
-	def pause_recording(self):
-		self.record = False
-
-	# not a true stop
-	def stop_recording(self):
-		self.record = False
-
-	def get_time(self):
-		return time() - self.timer
-
-	def reset_time(self):
-		self.timer = ms()
-
-	# doesn't take into effect keyholds.
-	def process(self, cmd, pressed):
-		if self.playing == False:
-			state = super(LoggingFSA, self).process(cmd, pressed)
-
-			#if self.record and state != False:
-			#	self.log.append((self.get_time(), ANIMATION_CHANGE_TOKEN, state))
-
-			return state
-
-		return False
-
-	def save(self, filename=None):
-		if filename == None:
-			filename = "fighter1.sav"
-
-		fh = open(filename, "w")
-
-		pickle.dump(self.log, fh)
-
-	def load(self, filename=None):
-		if filename == None:
-			filename = "fighter1.sav"
-
-		fh = open(filename)
-
-		self.log = pickle.load(fh)

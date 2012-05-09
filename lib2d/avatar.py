@@ -50,6 +50,7 @@ class Avatar(GameObject):
         self.curFrame     = None    # current frame number
         self.curAnimation = None
         self.animations   = {}
+        self.axis = (0,0)
         self.loop_frame = 0
         self.looped     = 0
         self.loop       = -1
@@ -58,6 +59,7 @@ class Avatar(GameObject):
         self._prevAngle = None
         self._prevFrame = None
         self._is_paused = False
+        self._rect = None
 
     def _updateCache(self):
         angle = self.getOrientation()
@@ -67,37 +69,41 @@ class Avatar(GameObject):
 
         if not angle == self._prevAngle:
             self.curImage = self.curAnimation.getImage(self.curFrame, angle)
+            self._rect = self.curImage.get_rect().move(self.axis)
             if self.flip: self.curImage = flip(self.curImage, 1, 0)
 
         elif not self.curFrame == self._prevFrame:
             self.curImage = self.curAnimation.getImage(self.curFrame, angle) 
+            self._rect = self.curImage.get_rect().move(self.axis)
             if self.flip: self.curImage = flip(self.curImage, 1, 0)
 
         elif self.curImage == None:
             self.curImage = self.curAnimation.getImage(self.curFrame, angle) 
+            self._rect = self.curImage.get_rect().move(self.axis)
             if self.flip: self.curImage = flip(self.curImage, 1, 0)
 
 
     def get_rect(self):
         self._updateCache()
-        return self.curImage.get_rect()
+        return self._rect
 
 
     def get_size(self):
         self._updateCache()
-        return self.curImage.get_size()
+        return self._rect.get_size()
 
 
     @property
     def rect(self):
         self._updateCache()
-        return self.curImage.get_rect()
+        return self._rect
 
 
     @property
     def image(self):
         self._updateCache()
         return self.curImage
+
 
     @property    
     def visible(self):

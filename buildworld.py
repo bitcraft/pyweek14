@@ -6,6 +6,7 @@ from lib2d import res, tmxloader
 from lib.hero import Hero
 from lib.level import Level
 from lib.enemies import *
+from lib.misc import *
 
 from collections import defaultdict
 import os
@@ -13,9 +14,10 @@ import os
 
 
 # build the initial environment
-uni = AbstractArea()
+uni = Area()
 uni.name = 'MH'
 uni.setGUID(0)
+
 
 # build our avatars and heros
 avatar = Avatar()
@@ -46,6 +48,7 @@ npc.setAvatar(avatar)
 npc.setGUID(1)
 uni.add(npc)
 
+
 # laser robot
 avatar = Avatar()
 ani = StaticAnimation("robot-stand.png", "stand")
@@ -61,10 +64,55 @@ npc.setGUID(513)
 uni.add(npc)
 
 
-village = fromTMX(uni, "level1.tmx")
-village.setName("Level 1")
-village.setGUID(1001)
+# lift
+avatar = Avatar()
+ani = StaticAnimation("lift-idle.png", "idle")
+avatar.add(ani)
+npc = Lift()
+npc.setName("Lift")
+npc.setAvatar(avatar)
+npc.setGUID(514)
+uni.add(npc)
+
+
+
+
+# load the avatar objects and set their world size based off the first frame
+# of their default animations
+import pygame, time
+
+pygame.init()
+screen = pygame.display.set_mode((240, 480))
+pygame.display.set_caption('Image Loading...')
+
+for ao in [ i for i in uni.getChildren() if isinstance(i, AvatarObject) ]:
+    [ i.load() for i in ao.avatar.getChildren() ]
+    sx, sy = ao.avatar.default.getImage(0).get_size()
+    x, y, z, d, w, h = ao.parent.getBBox(ao)
+    ao.parent.setBBox(ao, (x, y, z, 4, sx, sy))
+
+    [ i.unload() for i in ao.avatar.getChildren() ]
+
+
+# manually define some object sizes
+# hero
+npc = uni.getChildByGUID(1)
+npc.size = (4, 20, 32)
+npc.avatar.axis = (-6,0)
+
+
+# manually define some object sizes
+# laser robot
+npc = uni.getChildByGUID(513)
+npc.size = (4, 14, 32)
+npc.avatar.axis = (-9,0)
+
+
+# always load the levels last since they may duplicate objects
+level = fromTMX(uni, "level1.tmx")
+level.setName("Level 1")
+level.setGUID(1001)
 
 
 uni.save(os.path.join("resources", "worlds", "world"))
-
+pygame.quit()

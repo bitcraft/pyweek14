@@ -15,7 +15,7 @@ def fromTMX(parent, mapname):
     # for platformer maps
     def toWorld(data, (x, y, l)):
         """ translate tiled map coordinates to world coordinates """
-        return 0, x*data.tileheight, (y-1)*data.tilewidth
+        return 0, x*data.tileheight, (y-2)*data.tilewidth
 
 
     area = Area()
@@ -51,13 +51,9 @@ def fromTMX(parent, mapname):
             msg = "control gid: {} is used in more than one locaton"
             raise Exception, msg.format(gid)
 
-        x, y, z = toWorld(data, pos.pop())
-        d, w, h = (8, 32, 32)
-        bbox = BBox(x, y, z-h, d, w, h)
         body = area._parent.getChildByGUID(int(prop['guid']))
 
-        area.add(body)
-        area.setBBox(body, bbox)
+        area.add(body, toWorld(data, pos.pop()))
         area.setOrientation(body, "south")
 
 
@@ -75,17 +71,12 @@ def fromTMX(parent, mapname):
         copy = False
 
         for pos in locations:
-            x, y, z = toWorld(data, pos)
-            d, w, h = (8, 32, 32)
-            bbox = BBox(x, y, z-h, d, w, h)
-
             # bodies cannot exists in multiple locations, so a copy is
             # made for each
             if copy:
                 body = body.copy()
 
-            area.add(body)
-            area.setBBox(body, bbox)
+            area.add(body, toWorld(data, pos))
             area.setOrientation(body, "south")
             copy = True 
 
