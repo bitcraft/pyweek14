@@ -97,6 +97,10 @@ class LevelCamera(object):
                          if isinstance(i, AvatarObject) ]
         onScreen = []
 
+        if self.blank:
+            self.blank = False
+            self.maprender.blank = True
+
         for a in avatarobjects:
             x, y, z, d, w, h, = self.area.getBBox(a)
             x, y = self.toSurface((x, y, z))

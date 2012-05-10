@@ -6,7 +6,8 @@ from lib2d.buttons import *
 from lib2d.signals import *
 from lib2d.vec import Vec2d
 from lib2d.quadtree import QuadTree, FrozenRect
-from lib2d import tmxloader, res, gui
+from lib2d import res, gui
+from pytmx import tmxloader
 
 from math import sqrt, atan2
 from operator import itemgetter
@@ -88,7 +89,7 @@ class LevelState(GameState):
         self.borderFilled = gui.GraphicBox("dialog2.png")
         self.player_vector = (0,0,0)
         self.old_player_vector = (0,0,0)
-        self.hero_jump = 35
+        self.hero_jump = 60
 
         # allow the area to get needed data
         self.area.load()
@@ -113,6 +114,10 @@ class LevelState(GameState):
         self.msgBorder = pygame.Rect((0,mh,sw,sh-mh))
         self.hudBorder = pygame.Rect((mw,0,sw-mw,mh+6))
 
+        # make a list of elevators in the level
+        self.elevators = tmxloader.buildDistributionRects(self.area.tmxdata,
+                         "Elevators", gid=None)
+
 
         # play music if any has been set in tiled
         try:
@@ -136,35 +141,37 @@ class LevelState(GameState):
        
     def drawSidebar(self, surface, rect):
         # draw the static portions of the sidebar
-        sx, sy, sw, sh = rect
+        sw, sh, sw, sh = rect
 
         self.border.draw(surface, self.hudBorder)
         titleFont = pygame.font.Font(res.fontPath("04b.ttf"), 14)
 
         i = titleFont.render("PyWeek", 1, (128,128,128))
-        surface.blit(i, (sw/2+sx-i.get_size()[0]/2+1, sy+6))
+        surface.blit(i, (sw/2+sw-i.get_size()[0]/2+1, sh+6))
 
         i = titleFont.render("PyWeek", 1, self.foreground)
-        surface.blit(i, (sw/2+sx-i.get_size()[0]/2, sy+5))
+        surface.blit(i, (sw/2+sw-i.get_size()[0]/2, sh+5))
 
         headFont = pygame.font.Font(res.fontPath("volter.ttf"), 9)
 
         i = headFont.render("Inventory", 1, self.foreground, self.background)
-        surface.blit(i, (sx+ 10, sy+30))
+        surface.blit(i, (sw+ 10, sh+30))
 
 
     def draw(self, surface):
-        sx, sy = surface.get_size()
+        sw, sh = surface.get_size()
 
         if self.blank:
             self.blank = False
             surface.fill(self.background)
             self.drawSidebar(surface, self.hudBorder)
             self.border.draw(surface, self.msgBorder)
+            self.camera.blank = True
+            dirty = ((0,0), (sw, sh))
 
         # the main map
         self.camera.center(self.area.getPosition(self.hero))
-        self.camera.draw(surface)
+        dirty = self.camera.draw(surface)
 
         if self.area.drawables:
             [ o.draw(surface) for o in self.area.drawables ]
@@ -177,8 +184,7 @@ class LevelState(GameState):
         #rect = self.msgBorder.inflate(-16,-12)
         #gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
 
-
-        return
+        return dirty
 
 
     def update(self, time):
@@ -186,11 +192,13 @@ class LevelState(GameState):
         self.area.update(time)
         self.camera.update(time)
 
-        g = self.area.isGrounded(self.hero)
+        body = self.area.getBody(self.hero)
+
+        g = self.area.grounded(body)
 
         # true when landing after a fall
-        if self.hero.isFalling and g:
-            self.area.setForce(self.hero, self.player_vector)
+        if body.isFalling and g:
+            self.area.setForce(body, self.player_vector)
             self.hero.avatar.play("stand")
 
         # don't move around if not needed
@@ -198,22 +206,23 @@ class LevelState(GameState):
             x, y, z = self.player_vector
 
             #if g:
-            #    self.area.setForce(self.hero, (x,y,0))
+            #    self.area.setForce(body, (x,y,0))
 
             #    if not self.hero.avatar.isPlaying("crouch"):
-            #        self.area.applyForce(self.hero, (0,0,z))
+            #        self.area.applyForce(body, (0,0,z))
 
-            if self.hero.isFalling:
-                self.area.setForce(self.hero, (x,y,0))
+            if body.isFalling:
+                self.area.setForce(body, (x,y,0))
             else:
-                self.area.setForce(self.hero, (x,y,z))
+                self.area.setForce(body, (x,y,z))
 
             # true when idle and grounded
-            if y==0 and z==0 and not self.hero.isFalling:
-                self.hero.avatar.play("stand")
+            if (y==0) and (z==0):
+                if not body.isFalling:
+                    self.hero.avatar.play("stand")
 
             # true when beginning to jump
-            elif not y==0 and not z==0:
+            elif (not y==0) and (not z==0):
                 pass
 
             # true when moving and not jumping
@@ -248,8 +257,17 @@ class LevelState(GameState):
 
             # these actions will repeat as button is held down
             elif arg == BUTTONDOWN or arg == BUTTONHELD:
-                #if   cmd == P1_UP:      x = -1
-                #elif cmd == P1_DOWN:    x = 1
+                if cmd == P1_UP:
+                    self.elevatorUp()
+
+                elif cmd == P1_DOWN:
+                    if self.area.grounded(self.area.getBody(self.hero)):
+                        if playing == "stand":
+                            self.hero.avatar.play("crouch", loop_frame=4)
+
+                    else:
+                        self.elevatorDown()
+
                 if cmd == P1_LEFT:
                     y = -1
                     self.hero.avatar.flip = 1
@@ -258,13 +276,9 @@ class LevelState(GameState):
                     y = 1
                     self.hero.avatar.flip = 0
 
-                elif cmd == P1_ACTION2:
+                if cmd == P1_ACTION2:
                     z = -self.hero_jump
 
-                elif cmd == P1_DOWN:
-                    if self.area.isGrounded(self.hero) and (
-                    playing == "stand"):
-                        self.hero.avatar.play("crouch", loop_frame=4)
 
             # these actions will not repeat if button is held
             if arg == BUTTONDOWN:
@@ -273,6 +287,40 @@ class LevelState(GameState):
 
 
         self.player_vector = x, y*self.hero.move_speed, z
+
+
+    def findLift(self, offset):
+        body = self.area.getBody(self.hero)
+        liftbbox = body.bbox.move(0,0,offset)
+        shaftRect = self.area.toRect(body.bbox.move(0,0,-body.bbox.height))
+
+        for rect in self.elevators:
+            if rect.colliderect(shaftRect):
+                l = self.area.testCollideObjects(liftbbox)
+                l.remove(body)
+                if l:
+                    lift = l.pop()
+                    return lift
+
+        return None
+
+
+    def elevatorUp(self):
+        lift = self.findLift(3)
+
+        if lift:
+            body = self.area.getBody(self.hero)
+            self.area.movePosition(body, (0,0,-2), clip=True, push=True)
+            self.area.movePosition(lift, (0,0,-2), clip=True, push=True)
+
+
+    def elevatorDown(self):
+        lift = self.findLift(1)
+
+        if lift:
+            body = self.area.getBody(self.hero)
+            self.area.movePosition(body, (0,0,2), clip=True, push=True)
+            self.area.movePosition(lift, (0,0,2), clip=False, push=True)
 
 
 @receiver(emitSound)

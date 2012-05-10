@@ -39,6 +39,16 @@ class Body(object):
         self.o = o
         self._isFalling = False
 
+    def __repr__(self):
+        if self.parent:
+            return "<Body: {}>".format(self.parent.name)
+        else:
+            return "<Body: {}>".format(self.parent)
+
+    @property
+    def gravity(self):
+        return self.parent.gravity
+
 
     @property
     def pushable(self):
@@ -169,7 +179,7 @@ class Area(AbstractArea):
         This must be done when using the object in the game!
         """
       
-        import tmxloader
+        from pytmx import tmxloader
  
         self.tmxdata = tmxloader.load_pygame(
                        self.mappath, force_colorkey=(128,128,0))
@@ -273,7 +283,7 @@ class Area(AbstractArea):
 
                 # recursively push other bodies
                 for other in collide:
-                    if not self.movePosition(other, (x, y, z), True):
+                    if not self.movePosition(other, (x, y, z), push=True):
                         # we collided, so just go back to old position
                         body.oldbbox = originalbbox
                         body.bbox = originalbbox
@@ -471,7 +481,7 @@ class Area(AbstractArea):
         basic gravity
         """
       
-        time = time / 100
+        time = time / 80
         a = body.acc
 
         # de-accel vertical movement
@@ -480,8 +490,8 @@ class Area(AbstractArea):
 
         v = a * time
 
-        # apply gravity
-        v += Vec2d((0, 9.8)) * time
+        if body.gravity:
+            v += Vec2d((0, 9.8)) * time
     
         # v is our velocity
         y, z = v
@@ -501,8 +511,7 @@ class Area(AbstractArea):
     # platformer
     def grounded(self, body):
         # return if the body is at rest on the ground
-        bbox = body.bbox.move(0,0,1)
-        return self.testCollideGeometry(bbox)
+        return self.testCollideGeometry(body.bbox.move(0,0,1))
 
 
     def setExtent(self, rect):
@@ -549,8 +558,6 @@ class Area(AbstractArea):
         pass
 
 
-
-
     def getPositions(self):
         return [ (o, b.origin) for (o, b) in self.bboxes.items() ]
 
@@ -581,6 +588,9 @@ class Area(AbstractArea):
 
     #  CLIENT API  --------------
 
+    def getRect(self, thing):
+        return self.toRect(self.bodies[thing].bbox)
+
     def isGrounded(self, thing):
         return self.grounded(self.bodies[thing])
 
@@ -601,12 +611,12 @@ class Area(AbstractArea):
 
 
     # for platformers
-    def applyForce(self, thing, (x, y, z)):
-        self.bodies[thing].acc += Vec2d(y, z)
+    def applyForce(self, body, (x, y, z)):
+        body.acc += Vec2d(y, z)
 
 
-    def setForce(self, thing, (x, y, z)):
-        self.bodies[thing].acc = Vec2d(y, z)
+    def setForce(self, body, (x, y, z)):
+        body.acc = Vec2d(y, z)
 
 
     def getOrientation(self, thing):

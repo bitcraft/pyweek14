@@ -227,7 +227,7 @@ class StateDriver(object):
         
         currentState = current_state()
         while currentState:
-            time = clock.tick(40)
+            time = clock.tick(30)
 
             event = event_poll()
             while event:
@@ -288,6 +288,10 @@ class StateDriver(object):
                 if not currentState == originalState: continue
 
                 dirty = currentState.draw(self._screen)
+                if dirty:
+                    for rect in dirty:
+                        pygame.draw.rect(self._screen, (64,64,192), rect, 1)
+
                 gfx.update_display(dirty)
                 #gfx.update_display()
 

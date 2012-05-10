@@ -40,6 +40,7 @@ class GameObject(object):
         self.guid = None
         self.isFalling = False
         self.isAlive = True
+        self.gravity = True
 
 
     def returnNew(self):

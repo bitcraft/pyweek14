@@ -6,6 +6,7 @@ this time has tiled TMX maps built in and required
 
 import pygame
 from itertools import product, chain, ifilter
+from pytmx import tmxloader
 
 
 # this image will be used when a tile cannot be loaded
@@ -37,8 +38,6 @@ class BufferedTilemapRenderer(object):
     """
 
     def __init__(self, tmx, rect, **kwargs):
-        import tmxloader
-
         self.default_image = generateDefaultImage((tmx.tilewidth,
                                                    tmx.tileheight))
         self.tmx = tmx
@@ -86,6 +85,7 @@ class BufferedTilemapRenderer(object):
             rects.append(rect)
         self.layerQuadtree = quadtree.FastQuadTree(rects, 4)
 
+        self.idle = False
         self.blank = True 
         self.queue = None
 
@@ -100,7 +100,10 @@ class BufferedTilemapRenderer(object):
         x, y = int(x), int(y)
 
         if (self.oldX == x) and (self.oldY == y):
+            self.idle = True
             return
+
+        self.idle = False
 
         # calc the new postion in tiles and offset
         left, self.xoffset = divmod(x-self.halfWidth,  self.tmx.tilewidth)
@@ -331,11 +334,12 @@ class BufferedTilemapRenderer(object):
                     # create illusion of depth by sorting images and
                     # tiles that are on the same layer.  if the image is
                     # lower than the tile, don't reblit the tile
-                    tile = getTile((x/tw + left, y/th + top, layer))
-                    if not tile == 0:
-                        surblit(tile, (x-ox, y-oy))
+                    #tile = getTile((x/tw + left, y/th + top, layer))
+                    #if not tile == 0:
+                    #    surblit(tile, (x-ox, y-oy))
+                    pass
 
-                for l in range(layer+1,len(self.tmx.visibleTileLayers)):
+                for l in range(layer, len(self.tmx.visibleTileLayers)-1):
                     # there is a collision between a tile and a image, so
                     # we simply reblit the affected tiles over the sprite
                     tile = getTile((x/tw + left, y/th + top, l))
@@ -345,7 +349,10 @@ class BufferedTilemapRenderer(object):
         # restore clipping area
         surface.set_clip(origClip)
 
-        return self.rect
+        if self.idle:
+            return [ i[0] for i in dirty ]
+        else:
+            return [ self.rect ]
 
 
     def flushQueue(self):

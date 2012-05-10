@@ -2,11 +2,11 @@ from lib2d.area import AbstractArea, Area
 from lib2d.buildarea import fromTMX
 from lib2d.avatar import Avatar, Animation, StaticAnimation
 from lib2d.objects import AvatarObject
-from lib2d import res, tmxloader
 from lib.hero import Hero
 from lib.level import Level
 from lib.enemies import *
 from lib.misc import *
+from lib2d import res
 
 from collections import defaultdict
 import os
@@ -46,6 +46,8 @@ npc = Hero()
 npc.setName("Doc")
 npc.setAvatar(avatar)
 npc.setGUID(1)
+npc.size = (4, 16, 32)
+npc.avatar.axis = (-7,0)
 uni.add(npc)
 
 
@@ -61,17 +63,37 @@ npc = LaserRobot()
 npc.setName("LaserRobot")
 npc.setAvatar(avatar)
 npc.setGUID(513)
+npc.size = (4, 14, 32)
+npc.avatar.axis = (-9,0)
 uni.add(npc)
 
 
-# lift
+# lifts
 avatar = Avatar()
 ani = StaticAnimation("lift-idle.png", "idle")
 avatar.add(ani)
 npc = Lift()
 npc.setName("Lift")
 npc.setAvatar(avatar)
-npc.setGUID(514)
+npc.setGUID(769)
+npc.size = (4, 32, 16)
+npc.avatar.axis = (0,16)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(770)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(771)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(772)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(773)
 uni.add(npc)
 
 
@@ -79,33 +101,18 @@ uni.add(npc)
 
 # load the avatar objects and set their world size based off the first frame
 # of their default animations
-import pygame, time
+#import pygame, time
 
-pygame.init()
-screen = pygame.display.set_mode((240, 480))
-pygame.display.set_caption('Image Loading...')
+#pygame.init()
+#screen = pygame.display.set_mode((240, 480))
+#pygame.display.set_caption('Image Loading...')
 
-for ao in [ i for i in uni.getChildren() if isinstance(i, AvatarObject) ]:
-    [ i.load() for i in ao.avatar.getChildren() ]
-    sx, sy = ao.avatar.default.getImage(0).get_size()
-    x, y, z, d, w, h = ao.parent.getBBox(ao)
-    ao.parent.setBBox(ao, (x, y, z, 4, sx, sy))
-
-    [ i.unload() for i in ao.avatar.getChildren() ]
-
-
-# manually define some object sizes
-# hero
-npc = uni.getChildByGUID(1)
-npc.size = (4, 20, 32)
-npc.avatar.axis = (-6,0)
-
-
-# manually define some object sizes
-# laser robot
-npc = uni.getChildByGUID(513)
-npc.size = (4, 14, 32)
-npc.avatar.axis = (-9,0)
+#for ao in [ i for i in uni.getChildren() if isinstance(i, AvatarObject) ]:
+#    [ i.load() for i in ao.avatar.getChildren() ]
+#    sx, sy = ao.avatar.default.getImage(0).get_size()
+#    x, y, z, d, w, h = ao.parent.getBBox(ao)
+#    ao.parent.setBBox(ao, (x, y, z, 4, sx, sy))
+#    [ i.unload() for i in ao.avatar.getChildren() ]
 
 
 # always load the levels last since they may duplicate objects
@@ -115,4 +122,4 @@ level.setGUID(1001)
 
 
 uni.save(os.path.join("resources", "worlds", "world"))
-pygame.quit()
+#pygame.quit()

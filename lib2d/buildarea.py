@@ -1,4 +1,4 @@
-import tmxloader
+from pytmx import tmxloader
 from lib2d.area import Area
 from lib2d.bbox import BBox
 from lib2d import res
@@ -25,16 +25,27 @@ def fromTMX(parent, mapname):
     data = tmxloader.load_tmx(area.mappath)
 
 
+    for gid, prop in data.tile_properties.items():
+        try:
+            prop['guid'] = int(prop['guid'])
+        except KeyError:
+            pass
+
     # set the boundries (extent) of this map
     area.setExtent(((0,0), \
         (data.height * data.tileheight, data.width * data.tilewidth)))
 
     props = data.getTilePropertiesByLayer(-1)
 
+    print "GID MAP:"
+    for k in sorted(data.gidmap.keys()):
+        print "  {}: {}\t{}".format(k,
+                                    data.gidmap[k],
+                                    data.getTilePropertiesByGID(data.gidmap[k]))
 
     # load the level geometry from the 'control' layer 
     rects = []
-    for rect in tmxloader.buildDistributionRects(data, -1):
+    for rect in tmxloader.buildDistributionRects(data, "Control", "control", 1):
         # translate the tiled coordinates to world coordinates
         # for platformers
         x, y, sx, sy = rect
@@ -61,6 +72,31 @@ def fromTMX(parent, mapname):
     # items can have duplicate entries
     items = [ p for p in props if p[1].get('group', None) == 'item' ]
     done = [] 
+
+    for (gid, prop) in items:
+        if gid in done: continue
+        done.append(gid)
+
+        locations = data.getTileLocation(gid)
+        body = area._parent.getChildByGUID(int(prop['guid']))
+        copy = False
+
+        for pos in locations:
+            # bodies cannot exists in multiple locations, so a copy is
+            # made for each
+            if copy:
+                body = body.copy()
+
+            area.add(body, toWorld(data, pos))
+            area.setOrientation(body, "south")
+            copy = True 
+
+
+    # hack to load elevators
+    items = [ p for p in props if 768 < p[1]['guid'] < 1025 ]
+    done = [] 
+
+    print items
 
     for (gid, prop) in items:
         if gid in done: continue
