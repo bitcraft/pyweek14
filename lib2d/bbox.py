@@ -91,7 +91,7 @@ class BBox(object):
 
 
     def inflate(self, x, y, z):
-        return Rect((self._x - x / 2, self._y - y / 2, self._z - z / 2,
+        return BBox((self._x - x / 2, self._y - y / 2, self._z - z / 2,
                      self._d + x,     self._w + y,     self._h + z))
 
 
