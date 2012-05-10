@@ -73,7 +73,7 @@ def update_display_scaled2x(dirty):
 
 def update_display_scaled(dirty):
     scale(screen, screen_dim, screen_surface)
-    flip()
+    pygame.display.update(dirty)
 
 def set_screen(dim, scale=1, transform=None):
 
