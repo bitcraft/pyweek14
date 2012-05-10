@@ -533,10 +533,15 @@ class Area(AbstractArea):
 
     # platformer
     def grounded(self, body):
+        x, y, z, d, w, h = body.bbox
+        bbox = BBox((x, y, z+h), (d, w, 1))
+
         # return if the body is at rest on the ground
-        if self.testCollideGeometry(body.bbox.move(0,0,1)):
+        if self.testCollideGeometry(bbox):
+            print "geo, ground"
             return True
-        elif self.testCollideObjects(body.bbox.move(0,0,1)):
+        elif self.testCollideObjects(bbox, skip=[body]):
+            print "obj ground"
             return True
         return False
 
@@ -569,13 +574,14 @@ class Area(AbstractArea):
             raise Exception, msg.format(layer)
 
 
-    def testCollideObjects(self, bbox):
+    def testCollideObjects(self, bbox, skip=[]):
         bboxes = []
         bodies = []
 
         for body in self.bodies.values():
-            bboxes.append(body.bbox)
-            bodies.append(body)
+            if not body in skip:
+                bboxes.append(body.bbox)
+                bodies.append(body)
 
         return [ bodies[i] for i in bbox.collidelistall(bboxes) ]
 
