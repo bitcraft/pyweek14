@@ -79,7 +79,6 @@ class LevelState(GameState):
 
     def activate(self):
         self.blank = True
-        #self.background = (203, 204, 177)
         self.background = (109, 109, 109)
         self.foreground = (0, 0, 0)
 
@@ -120,7 +119,7 @@ class LevelState(GameState):
 
         # play music if any has been set in tiled
         try:
-            res.playMusic(self.tmxdata.music)
+            res.playMusic(self.area.tmxdata.music)
         except AttributeError:
             res.fadeoutMusic()
         
@@ -161,7 +160,7 @@ class LevelState(GameState):
             self.drawSidebar(surface, self.hudBorder)
             self.border.draw(surface, self.msgBorder)
             self.camera.blank = True
-            dirty = ((0,0), (sw, sh))
+            dirty = [((0,0), (sw, sh))]
 
         # the main map
         self.camera.center(self.area.getPosition(self.hero))
@@ -182,7 +181,6 @@ class LevelState(GameState):
 
 
     def update(self, time):
-
         self.area.update(time)
         self.camera.update(time)
 
@@ -210,16 +208,12 @@ class LevelState(GameState):
 
     # for platformers
     def handle_commandlist(self, cmdlist):
-        x = 0
-        y = 0
-        z = 0
+        x = 0; y = 0; z = 0
 
         playing = self.hero.avatar.curAnimation.name
 
         for cls, cmd, arg in cmdlist:
             if arg == BUTTONUP:
-                #if cmd == P1_UP:
-                #    self.player_vector.x = 0
                 if cmd == P1_DOWN:
                     if playing == "crouch":
                         self.hero.avatar.play("uncrouch", loop=0)
@@ -237,12 +231,10 @@ class LevelState(GameState):
                     self.elevatorUp()
 
                 elif cmd == P1_DOWN:
-                    if self.area.grounded(self.area.getBody(self.hero)):
-                        if playing == "stand":
-                            self.hero.avatar.play("crouch", loop_frame=4)
-
-                    else:
-                        self.elevatorDown()
+                    if not self.elevatorDown():
+                        if self.area.grounded(self.area.getBody(self.hero)):
+                            if playing == "stand":
+                                self.hero.avatar.play("crouch", loop_frame=4)
 
                 if cmd == P1_LEFT:
                     y = -1
@@ -257,11 +249,10 @@ class LevelState(GameState):
                 if cmd == P1_ACTION2:
                     z = -self.hero_jump
 
-
             # these actions will not repeat if button is held
             if arg == BUTTONDOWN:
                 if cmd == P1_ACTION1:
-                    self.hero.attack()
+                    self.hero.use()
 
 
         self.player_vector = x, y*self.hero.move_speed, z
@@ -270,7 +261,7 @@ class LevelState(GameState):
     def findLift(self, offset):
         body = self.area.getBody(self.hero)
         liftbbox = body.bbox.move(0,0,offset)
-        shaftRect = self.area.toRect(body.bbox.move(0,0,-body.bbox.height))
+        shaftRect = self.area.toRect(body.bbox.move(0,0,-body.bbox.height-4))
 
         for rect in self.elevators:
             if rect.colliderect(shaftRect):
@@ -291,6 +282,7 @@ class LevelState(GameState):
             self.area.movePosition(body, (0,0,-2), push=False)
             self.area.movePosition(lift, (0,0,-2), push=True)
             lift.parent.animate()
+            return True
 
 
     def elevatorDown(self):
@@ -301,6 +293,7 @@ class LevelState(GameState):
             self.area.movePosition(lift, (0,0,2), push=True)
             self.area.movePosition(body, (0,0,2), push=False)
             lift.parent.animate()
+            return True
 
 
 @receiver(emitSound)

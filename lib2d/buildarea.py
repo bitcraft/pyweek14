@@ -45,7 +45,7 @@ def fromTMX(parent, mapname):
 
     # load the level geometry from the 'control' layer 
     rects = []
-    for rect in tmxloader.buildDistributionRects(data, "Control", "control", 1):
+    for rect in tmxloader.buildDistributionRects(data, "Control", gid=1):
         # translate the tiled coordinates to world coordinates
         # for platformers
         x, y, sx, sy = rect
@@ -96,7 +96,28 @@ def fromTMX(parent, mapname):
     items = [ p for p in props if 768 < p[1]['guid'] < 1025 ]
     done = [] 
 
-    print items
+    for (gid, prop) in items:
+        if gid in done: continue
+        done.append(gid)
+
+        locations = data.getTileLocation(gid)
+        body = area._parent.getChildByGUID(int(prop['guid']))
+        copy = False
+
+        for pos in locations:
+            # bodies cannot exists in multiple locations, so a copy is
+            # made for each
+            if copy:
+                body = body.copy()
+
+            area.add(body, toWorld(data, pos))
+            area.setOrientation(body, "south")
+            copy = True 
+
+
+    # hack to load elevators' buttons
+    items = [ p for p in props if 256 < p[1]['guid'] < 513 ]
+    done = [] 
 
     for (gid, prop) in items:
         if gid in done: continue

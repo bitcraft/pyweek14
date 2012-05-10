@@ -8,4 +8,13 @@ class Hero(AvatarObject):
 
 
     def die(self):
-        self.avatar.play("die", loop_frame=2) 
+        self.avatar.play("die", loop_frame=2)
+
+
+    def use(self):
+        # attempt to use something in the environment
+
+        body = self.parent.getBody(self)
+        bbox = body.bbox.inflate(2,2,2)
+
+        print self.parent.testCollideObjects(bbox)

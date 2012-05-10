@@ -28,9 +28,11 @@ class LaserRobot(AvatarObject):
         self.warned = False
         self.pushable = True
 
+
     def load(self):
         self.shootSound = res.loadSound("ex0.wav")
         self.warnSound = res.loadSound("warn.wav")
+
 
     def update(self, time):
         self.time += time
@@ -64,6 +66,7 @@ class LaserRobot(AvatarObject):
     def warn(self):
         self.avatar.play("warn", loop=4)
         self.warnSound.play()
+
 
     def shoot(self):
         self.avatar.play("shoot", loop=0)

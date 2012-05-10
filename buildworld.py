@@ -99,6 +99,31 @@ npc.setGUID(773)
 uni.add(npc)
 
 
+#lift buttons
+avatar = Avatar()
+ani = StaticAnimation("button1.png", "on")
+avatar.add(ani)
+ani = StaticAnimation("button2.png", "off")
+avatar.add(ani)
+npc = Callbutton()
+npc.setName("Callbutton")
+npc.setAvatar(avatar)
+npc.setGUID(257)
+npc.size = (4, 16, 32)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(258)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(259)
+uni.add(npc)
+
+npc = npc.copy()
+npc.setGUID(260)
+uni.add(npc)
+
 
 # load the avatar objects and set their world size based off the first frame
 # of their default animations
@@ -128,6 +153,12 @@ level.setGUID(1001)
 for lift in [ i for i in uni.getChildren() if isinstance(i, Lift) ]:
     body = lift.parent.getBody(lift)
     body.bbox = body.bbox.move(0,0,1)
+
+
+# move buttons back so they don't collide with stuff
+for button in [ i for i in uni.getChildren() if isinstance(i, Callbutton) ]:
+    body = lift.parent.getBody(button)
+    body.bbox = body.bbox.move(4,0,1)
 
 
 uni.save(os.path.join("resources", "worlds", "world"))

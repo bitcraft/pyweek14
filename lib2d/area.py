@@ -170,6 +170,8 @@ class Area(AbstractArea):
         self._removeQueue = []
         self.drawables = []      # HAAAAKCCCCKCK
 
+        self._grounded = {}
+
         self.inUpdate = False
         self._removeQueue = []
 
@@ -529,7 +531,11 @@ class Area(AbstractArea):
     # platformer
     def grounded(self, body):
         # return if the body is at rest on the ground
-        return self.testCollideGeometry(body.bbox.move(0,0,1))
+        if self.testCollideGeometry(body.bbox.move(0,0,1)):
+            return True
+        elif self.testCollideObjects(body.bbox.move(0,0,1)):
+            return True
+        return False
 
 
     def setExtent(self, rect):

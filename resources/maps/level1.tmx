@@ -2,7 +2,7 @@
 <map version="1.0" orientation="orthogonal" width="45" height="45" tilewidth="16" tileheight="16">
  <tileset firstgid="1" source="controlset.tsx"/>
  <tileset firstgid="1905" name="level0" tilewidth="16" tileheight="16">
-  <image source="../tilesets/level0.png" width="256" height="64"/>
+  <image source="../tilesets/level0.png" width="256" height="96"/>
   <tile id="16">
    <properties>
     <property name="walkSound" value="step.wav"/>
@@ -29,17 +29,22 @@
    </properties>
   </tile>
  </tileset>
- <layer name="Background" width="45" height="45">
+ <layer name="Background 1" width="45" height="45">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+2YTQvCMAyGd/P/OlDnTZ1OvenBr19rBnthhGgPpprUHB6arqV7GEkGbSZVtSRujmjCOZwTzu3A2kEM5+nA2VDM3TDnzy2Rcq4Nwt3COZxTzgfiaMBPgrth3hrmTjyEuYdeB2dP/bkEZ+T1r/0keM3BGXm9UWD8Po3zOB5y41WuhHM4l+Rsuddx4KrZi8bn5+h16Mta30ByzpUb4ezP+V1+W3T+BuEcziU58//gykHM/4MnBzHPjRkxF8Z+baG0RyufcUezIzph7Nf2Snu078IuxFUY6wx7PnW2Ul9Rg1GD/1qDW0egBp95HUZnpB8AAA==
+   H4sIAAAAAAAAA+2WywrCMBBFu/N/Lah1p9bnThe+vtYUOlAu00Zx0szoFA5JmhAOdB6tJkWxDNwNUbmzO0ec65a1gTk5T1suiuboRmt8r4mYc6kQdHNnd445HwMnBX4c6EbrWjGPwJNZW6h15GypPvc5547doRxEZws5iM4U1xsBut9V4j7EQjz3xXcu53eemHPu2P0kJ915HGfNtQ4hV8la1L0/Ra2juixVBzjnVLXOne05D/Vyjc5j4M7u/EvO2AdXBubYB88G5hgbs8CcGZu9hdAZqXimvrUL7Jmx2TsInZH6F6X1NXBjxjLBmW+dteSX56Dn4L/m4NYQlIMvQU0m2qQfAAA=
   </data>
  </layer>
- <layer name="Foreground" width="45" height="45">
+ <layer name="Background 2" width="45" height="45">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3MyQ3CUBAE0X+boAETAIsDwEsAbAFgm9RcIVj/MBfXk+rUUpciSft0iFKOdKKGzpG717jwcaUb3amN3L3Gg4+OehpojNy9xpOPF73pQ9/I3Wv8+JhopoX+kbtLkiRJkiRJkqRtVp9yC1SkHwAA
+  </data>
+ </layer>
+ <layer name="Foreground" width="45" height="45" visible="0">
   <data encoding="base64" compression="gzip">
    H4sIAAAAAAAAA+3YuQ2AQAwEQGdXNFAAXwVAr7iCi4wQYkbabKWNnDgCAJ41tIgxM7XnO1XW3Ngye2erqlPlyI0zc3W2qjoAAAAA8Hdzi1j80OA1X77BG9MgkuikHwAA
   </data>
  </layer>
- <layer name="Elevators" width="45" height="45" visible="0">
+ <layer name="Elevators" width="45" height="45">
   <properties>
    <property name="visible" value="false"/>
   </properties>
@@ -47,12 +52,12 @@
    H4sIAAAAAAAAA+3WMQqAMBAF0RR7QVfvfxaFmEZIJ5MNzIPfT/kzWstnO0mbETYzKjef0Tcc0Wfzv2xm2MyYNVc2a77eVWQzw+Y1bGbYzLCZscPf+LKZYTPDZobNDJsZNjNsZtjMsJlhM2M03wHePdikHwAA
   </data>
  </layer>
- <layer name="Control" width="45" height="45" visible="0">
+ <layer name="Control" width="45" height="45">
   <properties>
    <property name="visible" value="false"/>
   </properties>
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3XzQ2AIAyG4SITOIoj+LP/TB7UA0YuBCi175MQrl8IbUHkEsSO+d4tZX6QuY9gaAE5W9ROANSl3W9za49pvtVQ7VmcJT0zL1O6l/rDOR+ve17r7cLbCGivVi/zoFUvstDrvjKPjsx9MGsBPzT+06PMQWAE2nVFDcI77boqqcETH+icC6QfAAA=
+   H4sIAAAAAAAAA+3XSw6AIAwEUJATeAQ/F/AIfu5/JhfoAiIbQmlr5yWE7Wicgs5F3ukxPrumzC9k7sMrWgAlR+BOYMssrJBLlmcSlq8G97wtrTOk+XZF3dN4lpQyrwQPsg3pXusP7/nKvvNWdxfcjQDotZplFlDNIg2z7iuzdMjcB85aADt6/0tLOgcBJODuFToI1nH3qqaDNzMPTLCkHwAA
   </data>
  </layer>
 </map>
