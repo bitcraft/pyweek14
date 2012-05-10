@@ -31,15 +31,15 @@
  </tileset>
  <layer name="Background" width="45" height="45">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+2Y2wrCMAyGd+f7OlDnnToP804vPD2tKeyHESoVlrqkpvDRdi3joyQptJlV1Zp4GKJxZ3dOOLc9WwNjOM97rorG3A1z/l0TKedaIdzNnd055dwRZwV+Mbgb5q1insQrMrdQ6+BsqT6X4Iy4Dm1qRw7POTgjrncCDJvE/zgWYuNTrLizO5fkjHoytc83wFWyFuWudajLUmcA5+E8V2xIO8PbkrO1c+Zod/4F7uzOJTnze3BjYMzvwYuBMY+NBbGM9GFtJbRHKp7xRnMgjpE+rJ2E9ki/hd2Ie6SvM+wZ66wlvzwHPQf/NQf3hkAOvgHP2Lb6pB8AAA==
+   H4sIAAAAAAAAA+2YTQvCMAyGd/P/OlDnTZ1OvenBr19rBnthhGgPpprUHB6arqV7GEkGbSZVtSRujmjCOZwTzu3A2kEM5+nA2VDM3TDnzy2Rcq4Nwt3COZxTzgfiaMBPgrth3hrmTjyEuYdeB2dP/bkEZ+T1r/0keM3BGXm9UWD8Po3zOB5y41WuhHM4l+Rsuddx4KrZi8bn5+h16Mta30ByzpUb4ezP+V1+W3T+BuEcziU58//gykHM/4MnBzHPjRkxF8Z+baG0RyufcUezIzph7Nf2Snu078IuxFUY6wx7PnW2Ul9Rg1GD/1qDW0egBp95HUZnpB8AAA==
   </data>
  </layer>
  <layer name="Foreground" width="45" height="45">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3TMQ0AMAwEsd+CvUVdDJmqKDaCWy4BAAAAAAAAOk4lt35XwF6TH3y0/DsMpB8AAA==
+   H4sIAAAAAAAAA+3YuQ2AQAwEQGdXNFAAXwVAr7iCi4wQYkbabKWNnDgCAJ41tIgxM7XnO1XW3Ngye2erqlPlyI0zc3W2qjoAAAAA8Hdzi1j80OA1X77BG9MgkuikHwAA
   </data>
  </layer>
- <layer name="Elevators" width="45" height="45">
+ <layer name="Elevators" width="45" height="45" visible="0">
   <properties>
    <property name="visible" value="false"/>
   </properties>
@@ -47,7 +47,7 @@
    H4sIAAAAAAAAA+3WMQqAMBAF0RR7QVfvfxaFmEZIJ5MNzIPfT/kzWstnO0mbETYzKjef0Tcc0Wfzv2xm2MyYNVc2a77eVWQzw+Y1bGbYzLCZscPf+LKZYTPDZobNDJsZNjNsZtjMsJlhM2M03wHePdikHwAA
   </data>
  </layer>
- <layer name="Control" width="45" height="45">
+ <layer name="Control" width="45" height="45" visible="0">
   <properties>
    <property name="visible" value="false"/>
   </properties>

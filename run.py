@@ -10,8 +10,7 @@ class TestGame(Game):
         from lib2d.objects import loadObject
         from lib.levelstate import LevelState
         
-        #gfx.set_screen((640, 480), 2, "scale")
-        gfx.set_screen((640, 480))
+        gfx.set_screen((640, 480), 2, "scale")
         self.sd.reload_screen()
         path = os.path.join("resources", "worlds", "world")
         world = loadObject(path)

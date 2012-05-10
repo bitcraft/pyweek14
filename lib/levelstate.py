@@ -26,17 +26,16 @@ class SoundManager(object):
         self.sounds = {}
         self.last_played = {}
 
-    def loadSound(self, name, filename):
+    def loadSound(self, filename):
         self.sounds[filename] = res.loadSound(filename)
         self.last_played[filename] = 0
 
-    def play(self, name, volume=1.0):
+    def play(self, filename, volume=1.0):
         now = time.time()
-        if self.last_played[name] + .1 <= now:
-            self.last_played[name] = now
-            sound = self.sounds[name]
+        if self.last_played[filename] + .1 <= now:
+            self.last_played[filename] = now
+            sound = self.sounds[filename]
             sound.set_volume(volume)
-            sound.stop()
             sound.play()
 
 
@@ -89,7 +88,8 @@ class LevelState(GameState):
         self.borderFilled = gui.GraphicBox("dialog2.png")
         self.player_vector = (0,0,0)
         self.old_player_vector = (0,0,0)
-        self.hero_jump = 60
+        self.old_falling = None
+        self.hero_jump = 35
 
         # allow the area to get needed data
         self.area.load()
@@ -118,21 +118,15 @@ class LevelState(GameState):
         self.elevators = tmxloader.buildDistributionRects(self.area.tmxdata,
                          "Elevators", gid=None)
 
-
         # play music if any has been set in tiled
         try:
             res.playMusic(self.tmxdata.music)
         except AttributeError:
             res.fadeoutMusic()
         
-    
-        # load tile sounds
-        for i, layer in enumerate(self.area.tmxdata.tilelayers):
-            props = self.area.tmxdata.getTilePropertiesByLayer(i)
-            for gid, tileProp in props:
-                for key, value in tileProp.items():
-                    if key[4:].lower() == "sound":
-                        SoundMan.loadSound(key, value)
+        # load sounds from area
+        for filename in self.area.soundFiles:
+            SoundMan.loadSound(filename)
 
 
     def deactivate(self):
@@ -194,25 +188,14 @@ class LevelState(GameState):
 
         body = self.area.getBody(self.hero)
 
-        g = self.area.grounded(body)
-
-        # true when landing after a fall
-        if body.isFalling and g:
-            self.area.setForce(body, self.player_vector)
-            self.hero.avatar.play("stand")
-
         # don't move around if not needed
-        if not self.player_vector == self.old_player_vector:
+        if (not self.player_vector == self.old_player_vector) or \
+           (not body.isFalling == self.old_falling):
             x, y, z = self.player_vector
 
-            #if g:
-            #    self.area.setForce(body, (x,y,0))
-
-            #    if not self.hero.avatar.isPlaying("crouch"):
-            #        self.area.applyForce(body, (0,0,z))
-
+            # allows you to move in air
             if body.isFalling:
-                self.area.setForce(body, (x,y,0))
+                self.area.setForce(body, (x/3,y/3,z))
             else:
                 self.area.setForce(body, (x,y,z))
 
@@ -221,15 +204,8 @@ class LevelState(GameState):
                 if not body.isFalling:
                     self.hero.avatar.play("stand")
 
-            # true when beginning to jump
-            elif (not y==0) and (not z==0):
-                pass
-
-            # true when moving and not jumping
-            elif z==0:
-                self.hero.avatar.play("run")
-            
             self.old_player_vector = tuple(self.player_vector)
+            self.old_falling = body.isFalling
 
 
     # for platformers
@@ -270,10 +246,12 @@ class LevelState(GameState):
 
                 if cmd == P1_LEFT:
                     y = -1
+                    self.hero.avatar.play("run")
                     self.hero.avatar.flip = 1
 
                 elif cmd == P1_RIGHT:
                     y = 1
+                    self.hero.avatar.play("run")
                     self.hero.avatar.flip = 0
 
                 if cmd == P1_ACTION2:
@@ -310,8 +288,9 @@ class LevelState(GameState):
 
         if lift:
             body = self.area.getBody(self.hero)
-            self.area.movePosition(body, (0,0,-2), clip=True, push=True)
-            self.area.movePosition(lift, (0,0,-2), clip=True, push=True)
+            self.area.movePosition(body, (0,0,-2), push=False)
+            self.area.movePosition(lift, (0,0,-2), push=True)
+            lift.parent.animate()
 
 
     def elevatorDown(self):
@@ -319,8 +298,9 @@ class LevelState(GameState):
 
         if lift:
             body = self.area.getBody(self.hero)
-            self.area.movePosition(body, (0,0,2), clip=True, push=True)
-            self.area.movePosition(lift, (0,0,2), clip=False, push=True)
+            self.area.movePosition(lift, (0,0,2), push=True)
+            self.area.movePosition(body, (0,0,2), push=False)
+            lift.parent.animate()
 
 
 @receiver(emitSound)

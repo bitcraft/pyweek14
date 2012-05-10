@@ -164,6 +164,7 @@ class Area(AbstractArea):
         self.tmxdata = None
         self.mappath = None
         self.sounds = []
+        self.soundFiles = []
         self.inUpdate = False
         self._addQueue = []
         self._removeQueue = []
@@ -194,6 +195,18 @@ class Area(AbstractArea):
 
             rects.append(ExitTile((x,y,
                 self.tmxdata.tilewidth, self.tmxdata.tileheight), guid))
+
+        # get sounds from tiles
+        for i, layer in enumerate(self.tmxdata.tilelayers):
+            props = self.tmxdata.getTilePropertiesByLayer(i)
+            for gid, tileProp in props:
+                for key, value in tileProp.items():
+                    if key[4:].lower() == "sound":
+                        self.soundFiles.append(value)
+
+        # get sounds from objects
+        for i in [ i for i in self.getChildren() if i.sounds ]:
+            self.soundFiles.extend(i.sounds)
 
         #self.exitQT = QuadTree(rects)
 
@@ -439,9 +452,14 @@ class Area(AbstractArea):
     def _worldToTile(self, (x, y)):
         return int(y)/self.tmxdata.tileheight, int(x)/self.tmxdata.tilewidth
 
-    def emitSound(self, filename, pos):
+    def emitSound(self, filename, pos=None, thing=None):
+        if pos==thing==None:
+            raise ValueError, "emitSound requires a position or thing"
+
         self.sounds = [ s for s in self.sounds if not s.done ]
         if filename not in [ s.filename for s in self.sounds ]:
+            if thing:
+                pos = self.bodies[thing]
             emitSound.send(sender=self, filename=filename, position=pos)
             self.sounds.append(Sound(filename, 300))
 

@@ -41,6 +41,7 @@ class GameObject(object):
         self.isFalling = False
         self.isAlive = True
         self.gravity = True
+        self.sounds = []
 
 
     def returnNew(self):

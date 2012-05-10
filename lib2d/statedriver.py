@@ -288,12 +288,7 @@ class StateDriver(object):
                 if not currentState == originalState: continue
 
                 dirty = currentState.draw(self._screen)
-                if dirty:
-                    for rect in dirty:
-                        pygame.draw.rect(self._screen, (64,64,192), rect, 1)
-
                 gfx.update_display(dirty)
-                #gfx.update_display()
 
 
 # singleton type object

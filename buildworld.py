@@ -72,6 +72,8 @@ uni.add(npc)
 avatar = Avatar()
 ani = StaticAnimation("lift-idle.png", "idle")
 avatar.add(ani)
+ani = Animation("lift-glow.png", "glow", 4, 1, 100)
+avatar.add(ani)
 npc = Lift()
 npc.setName("Lift")
 npc.setAvatar(avatar)
@@ -98,7 +100,6 @@ uni.add(npc)
 
 
 
-
 # load the avatar objects and set their world size based off the first frame
 # of their default animations
 #import pygame, time
@@ -115,10 +116,18 @@ uni.add(npc)
 #    [ i.unload() for i in ao.avatar.getChildren() ]
 
 
+
+
 # always load the levels last since they may duplicate objects
 level = fromTMX(uni, "level1.tmx")
 level.setName("Level 1")
 level.setGUID(1001)
+
+
+#haccckk
+for lift in [ i for i in uni.getChildren() if isinstance(i, Lift) ]:
+    body = lift.parent.getBody(lift)
+    body.bbox = body.bbox.move(0,0,1)
 
 
 uni.save(os.path.join("resources", "worlds", "world"))

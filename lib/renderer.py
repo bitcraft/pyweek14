@@ -113,10 +113,13 @@ class LevelCamera(object):
         onScreen = [ (a.avatar.image, r, 2, a) for a, r in onScreen ]
         #onScreen.sort(key=screenSorter)
 
+        return self.maprender.draw(surface, onScreen)
+
         dirty = self.maprender.draw(surface, onScreen)
 
         clip = surface.get_clip()
         surface.set_clip(self.rect)
+
         for (x, y, w, h) in self.area.geoRect:
             draw.rect(surface, (128,128,255), \
             (self.toScreen(self.toSurface((0, x, y))), (w, h)), 1)
