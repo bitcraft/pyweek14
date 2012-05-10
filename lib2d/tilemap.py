@@ -199,12 +199,12 @@ class BufferedTilemapRenderer(object):
 
         if surface:
             for i, t in enumerate(self.tilemap.images):
-                if not t == 0: self.tilemap.images[i] = t.convert(surface)
+                if t: self.tilemap.images[i] = t.convert(surface)
             self.buffer = self.buffer.convert(surface)
 
         elif depth or flags:
             for i, t in enumerate(self.tilemap.images):
-                if not t == 0:
+                if t:
                     self.tilemap.images[i] = t.convert(depth, flags)
             self.buffer = self.buffer.convert(depth, flags)
 
@@ -278,7 +278,7 @@ class BufferedTilemapRenderer(object):
                     break
 
                 image = getTile((x, y, l))
-                if not image == 0:
+                if image:
                     bufblit(image, (x * tw - ltw, y * th - tth))
 
 
@@ -330,20 +330,11 @@ class BufferedTilemapRenderer(object):
             dirtyRect = dirtyRect.move(ox, oy)
             for r in self.layerQuadtree.hit(dirtyRect):
                 x, y, tw, th = r
-                if dirtyRect.bottom < y+th:
-                    # create illusion of depth by sorting images and
-                    # tiles that are on the same layer.  if the image is
-                    # lower than the tile, don't reblit the tile
-                    #tile = getTile((x/tw + left, y/th + top, layer))
-                    #if not tile == 0:
-                    #    surblit(tile, (x-ox, y-oy))
-                    pass
-
-                for l in range(layer, len(self.tmx.visibleTileLayers)-1):
+                for l in range(layer+1, len(self.tmx.visibleTileLayers)):
                     # there is a collision between a tile and a image, so
                     # we simply reblit the affected tiles over the sprite
                     tile = getTile((x/tw + left, y/th + top, l))
-                    if not tile == 0:
+                    if tile:
                         surblit(tile, (x-ox, y-oy))
 
         # restore clipping area

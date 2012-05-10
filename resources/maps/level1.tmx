@@ -31,7 +31,7 @@
  </tileset>
  <layer name="Background 1" width="45" height="45">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+2WywrCMBBFu/N/Lah1p9bnThe+vtYUOlAu00Zx0szoFA5JmhAOdB6tJkWxDNwNUbmzO0ec65a1gTk5T1suiuboRmt8r4mYc6kQdHNnd445HwMnBX4c6EbrWjGPwJNZW6h15GypPvc5547doRxEZws5iM4U1xsBut9V4j7EQjz3xXcu53eemHPu2P0kJ915HGfNtQ4hV8la1L0/Ra2juixVBzjnVLXOne05D/Vyjc5j4M7u/EvO2AdXBubYB88G5hgbs8CcGZu9hdAZqXimvrUL7Jmx2TsInZH6F6X1NXBjxjLBmW+dteSX56Dn4L/m4NYQlIMvQU0m2qQfAAA=
+   H4sIAAAAAAAAA+2WQQ+CMAyFufl/JUHhJqJ4lQP6cx0JTUgzmCYda+cjeWnHluULvHarD0XROL0NqQYzmAPM3azWQE7Mx1mDopyz0Zi/16QQc6lQnA3MYM6RuVMszmip1+XEnNq7W37OifkqoOV/ldiPy4Kf1/ydivmbJ8Sc2ru/+BvMYF5jluxFy/1j9jqpPuBjjtXrwGyPeess18i8h8AM5hyZqcYvBnL+nZ8Gcs5cOZ08cZo7C62R8gadW3en3hOnuYfQGql7HY1Hp5cnlhHWSN1FU9cXahA1+K81eDMkYv4AS5Av1aQfAAA=
   </data>
  </layer>
  <layer name="Background 2" width="45" height="45">
@@ -39,12 +39,12 @@
    H4sIAAAAAAAAA+3MyQ3CUBAE0X+boAETAIsDwEsAbAFgm9RcIVj/MBfXk+rUUpciSft0iFKOdKKGzpG717jwcaUb3amN3L3Gg4+OehpojNy9xpOPF73pQ9/I3Wv8+JhopoX+kbtLkiRJkiRJkqRtVp9yC1SkHwAA
   </data>
  </layer>
- <layer name="Foreground" width="45" height="45" visible="0">
+ <layer name="Foreground" width="45" height="45">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3YuQ2AQAwEQGdXNFAAXwVAr7iCi4wQYkbabKWNnDgCAJ41tIgxM7XnO1XW3Ngye2erqlPlyI0zc3W2qjoAAAAA8Hdzi1j80OA1X77BG9MgkuikHwAA
+   H4sIAAAAAAAAA+3VuQ2AQAxEUWeuHTqATqADqAonJCsmA3ZA/2XORpaPCAC4tmTEmrp2ROZ3bJVvT13jWUP1ejTtd5vNOetpqnxz6hpoOc+1ysZcA/gz57uscJcBAHfhDwJ9sYNAX1/ewQPo5RtPpB8AAA==
   </data>
  </layer>
- <layer name="Elevators" width="45" height="45">
+ <layer name="Elevators" width="45" height="45" visible="0">
   <properties>
    <property name="visible" value="false"/>
   </properties>
@@ -57,7 +57,7 @@
    <property name="visible" value="false"/>
   </properties>
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3X2wmAMAwF0NZO4Ag+FnAEH/vPJFIKpaiomCZp74Hg77WYpLbGs0YfZKa1OP/UlDmwigoAZOgfNuTU0OYIhiRPp3xgcM/au1qjfXfU7EiOgITGXXKVeRT2InEPlnDOW/Kd/3V3wd0I4B1ps640VLNIw6w7yywdMueBXQtQj1z/0BL3IIAE3H2FHoTacffVlx7cAcIBiQukHwAA
+   H4sIAAAAAAAAA+3XbQqAIAwGYM0TdIQ+LtAR+rj/mSJEEKmIarq59wHp76u0TVvjWSMPMtNanP9KyhxYQYuzNCMy00BmHvqHG5ga2hzBkOTphB9w6V57t9Zo3h1rdiRHQEJi7V1lHpltJK7BGs55S/7zv+4u2u5GAF9x63W1oepFEnrdWWbukDkPzFoAPXK9oTnOQQAOStcVahC0K11Xb2pwB7vvEjmkHwAA
   </data>
  </layer>
 </map>

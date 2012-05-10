@@ -21,17 +21,14 @@ class Laser(GameObject):
 
 
 class LaserRobot(AvatarObject):
+    sounds = ["ex0.wav", "warn.wav"]
+
     def __init__(self):
         AvatarObject.__init__(self)
         self.rate = 3000
         self.time = 0
         self.warned = False
         self.pushable = True
-
-
-    def load(self):
-        self.shootSound = res.loadSound("ex0.wav")
-        self.warnSound = res.loadSound("warn.wav")
 
 
     def update(self, time):
@@ -65,7 +62,7 @@ class LaserRobot(AvatarObject):
 
     def warn(self):
         self.avatar.play("warn", loop=4)
-        self.warnSound.play()
+        self.parent.emitSound("warn.wav", thing=self)
 
 
     def shoot(self):
@@ -77,4 +74,4 @@ class LaserRobot(AvatarObject):
         if not hero.avatar.isPlaying("crouch"):
             hero.die()
         
-        self.shootSound.play()
+        self.parent.emitSound("ex0.wav", thing=self)

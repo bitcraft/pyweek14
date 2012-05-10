@@ -94,25 +94,16 @@ def fromTMX(parent, mapname):
 
     # hack to load elevators
     items = [ p for p in props if 768 < p[1]['guid'] < 1025 ]
-    done = [] 
 
     for (gid, prop) in items:
-        if gid in done: continue
-        done.append(gid)
+        pos = data.getTileLocation(gid)
+        if len(pos) > 1:
+            msg = "control gid: {} is used in more than one locaton"
+            raise Exception, msg.format(gid)
 
-        locations = data.getTileLocation(gid)
         body = area._parent.getChildByGUID(int(prop['guid']))
-        copy = False
-
-        for pos in locations:
-            # bodies cannot exists in multiple locations, so a copy is
-            # made for each
-            if copy:
-                body = body.copy()
-
-            area.add(body, toWorld(data, pos))
-            area.setOrientation(body, "south")
-            copy = True 
+        area.add(body, toWorld(data, pos.pop()))
+        area.setOrientation(body, "south")
 
 
     # hack to load elevators' buttons
@@ -124,14 +115,18 @@ def fromTMX(parent, mapname):
         done.append(gid)
 
         locations = data.getTileLocation(gid)
-        body = area._parent.getChildByGUID(int(prop['guid']))
+        original = area._parent.getChildByGUID(int(prop['guid']))
         copy = False
 
         for pos in locations:
             # bodies cannot exists in multiple locations, so a copy is
             # made for each
             if copy:
-                body = body.copy()
+                body = original.copy()
+            else:
+                body = original            
+
+            body.liftGUID = prop['guid'] + 512
 
             area.add(body, toWorld(data, pos))
             area.setOrientation(body, "south")

@@ -444,6 +444,7 @@ class Area(AbstractArea):
     #    yy = int(y) * self.tmxdata.tilewidth
     #    return xx, yy, z
 
+
     # platformer
     def worldToTile(self, (x, y, z)):
         xx = int(y) / self.tmxdata.tilewidth
@@ -457,7 +458,7 @@ class Area(AbstractArea):
     def _worldToTile(self, (x, y)):
         return int(y)/self.tmxdata.tileheight, int(x)/self.tmxdata.tilewidth
 
-    def emitSound(self, filename, pos=None, thing=None):
+    def emitSound(self, filename, pos=None, thing=None, ttl=500):
         if pos==thing==None:
             raise ValueError, "emitSound requires a position or thing"
 
@@ -466,7 +467,7 @@ class Area(AbstractArea):
             if thing:
                 pos = self.bodies[thing]
             emitSound.send(sender=self, filename=filename, position=pos)
-            self.sounds.append(Sound(filename, 300))
+            self.sounds.append(Sound(filename, ttl))
 
 
     def update(self, time):
@@ -508,7 +509,7 @@ class Area(AbstractArea):
         a = body.acc
 
         # de-accel vertical movement
-        if not self.grounded(body) and a.y < 0:
+        if body.isFalling and a.y < 0:
             a += (0, 1)
 
         v = a * time
@@ -523,27 +524,27 @@ class Area(AbstractArea):
         if not y==0:
             self.movePosition(body, (0, y, 0))
 
-        if not z==0: 
+        if z > 0: 
             falling = self.movePosition(body, (0, 0, z))
             if falling and not body.isFalling:
                 body.isFalling = True
+                self._grounded[body] = False
             elif not falling and body.isFalling:
                 body.isFalling = False
-            
+                self._grounded[body] = True 
+        elif z < 0:
+            flying = self.movePosition(body, (0, 0, z))
+            if flying:
+                self._grounded[body] = False
+                body.isFalling = True
+
 
     # platformer
     def grounded(self, body):
-        x, y, z, d, w, h = body.bbox
-        bbox = BBox((x, y, z+h), (d, w, 1))
-
-        # return if the body is at rest on the ground
-        if self.testCollideGeometry(bbox):
-            print "geo, ground"
-            return True
-        elif self.testCollideObjects(bbox, skip=[body]):
-            print "obj ground"
-            return True
-        return False
+        try:
+            return self._grounded[body]
+        except:
+            return False
 
 
     def setExtent(self, rect):
@@ -559,6 +560,7 @@ class Area(AbstractArea):
 
         # TODO: calc layer value
         layer = 0
+
 
         try:
             rect = self.toRect(bbox)

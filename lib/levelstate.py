@@ -193,7 +193,7 @@ class LevelState(GameState):
 
             # allows you to move in air
             if body.isFalling:
-                self.area.setForce(body, (x/3,y/3,z))
+                self.area.setForce(body, (x/3,y/3,body.acc.y))
             else:
                 self.area.setForce(body, (x,y,z))
 
