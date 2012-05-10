@@ -263,6 +263,9 @@ class Area(AbstractArea):
         This function will emit a bodyRelMove event if successful. 
         """
 
+        if not isinstance(body, Body):
+            raise ValueError, "must supply a body"
+
         movable = 0
         originalbbox = body.bbox
         newbbox = originalbbox.move(x, y, z)

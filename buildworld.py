@@ -63,8 +63,8 @@ npc = LaserRobot()
 npc.setName("LaserRobot")
 npc.setAvatar(avatar)
 npc.setGUID(513)
-npc.size = (4, 14, 32)
-npc.avatar.axis = (-9,0)
+npc.size = (4, 14, 30)
+npc.avatar.axis = (-9,-2)
 uni.add(npc)
 
 
@@ -101,9 +101,9 @@ uni.add(npc)
 
 #lift buttons
 avatar = Avatar()
-ani = StaticAnimation("button1.png", "on")
-avatar.add(ani)
 ani = StaticAnimation("button2.png", "off")
+avatar.add(ani)
+ani = StaticAnimation("button1.png", "on")
 avatar.add(ani)
 npc = Callbutton()
 npc.setName("Callbutton")

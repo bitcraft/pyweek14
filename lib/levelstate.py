@@ -261,7 +261,7 @@ class LevelState(GameState):
     def findLift(self, offset):
         body = self.area.getBody(self.hero)
         liftbbox = body.bbox.move(0,0,offset)
-        shaftRect = self.area.toRect(body.bbox.move(0,0,-body.bbox.height-4))
+        shaftRect = self.area.toRect(body.bbox.move(0,0,-body.bbox.height/2))
 
         for rect in self.elevators:
             if rect.colliderect(shaftRect):
@@ -278,9 +278,10 @@ class LevelState(GameState):
         lift = self.findLift(3)
 
         if lift:
+            lift.parent.cancelCall()
             body = self.area.getBody(self.hero)
             self.area.movePosition(body, (0,0,-2), push=False)
-            self.area.movePosition(lift, (0,0,-2), push=True)
+            self.area.movePosition(lift, (0,0,-2), push=True, clip=False)
             lift.parent.animate()
             return True
 
@@ -289,8 +290,9 @@ class LevelState(GameState):
         lift = self.findLift(1)
 
         if lift:
+            lift.parent.cancelCall()
             body = self.area.getBody(self.hero)
-            self.area.movePosition(lift, (0,0,2), push=True)
+            self.area.movePosition(lift, (0,0,2), push=True, clip=False)
             self.area.movePosition(body, (0,0,2), push=False)
             lift.parent.animate()
             return True

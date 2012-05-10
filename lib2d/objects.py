@@ -26,6 +26,8 @@ class GameObject(object):
     difficult to track bugs.
     """
 
+    sounds = []
+
     def __init__(self, parent=None):
         self.short_name = str(self.__class__)
         self.short_desc = ""
@@ -41,7 +43,6 @@ class GameObject(object):
         self.isFalling = False
         self.isAlive = True
         self.gravity = True
-        self.sounds = []
 
 
     def returnNew(self):
