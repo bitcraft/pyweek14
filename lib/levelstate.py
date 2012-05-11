@@ -42,6 +42,11 @@ class SoundManager(object):
 SoundMan = SoundManager()
 
 
+# GLOBAL LEET SKILLS
+heroBody = None
+
+
+
 class LevelState(GameState):
     """
     This state is where the player will move the hero around the map
@@ -63,13 +68,6 @@ class LevelState(GameState):
     contains metadata that lib2d can use to layout and position objects
     correctly.
 
-    i would really like the game to be sandboxable...set traps,
-    make contraptions, etc
-
-    controls:
-        picking up objects will affect what your buttons do
-        equipted items always have a dedicated button
-        should have hot-swap button and drop button
     """
 
     def __init__(self, area, startPosition=None):
@@ -78,6 +76,8 @@ class LevelState(GameState):
 
 
     def activate(self):
+        global hero_body
+
         self.blank = True
         self.background = (109, 109, 109)
         self.foreground = (0, 0, 0)
@@ -88,10 +88,16 @@ class LevelState(GameState):
         self.player_vector = (0,0,0)
         self.old_player_vector = (0,0,0)
         self.old_falling = None
-        self.hero_jump = 35
+        self.hero_jump = 25
+
+        self.camera = None
 
         # allow the area to get needed data
         self.area.load()
+
+        # load the children
+        for child in self.area.getChildren():
+            child.load()
 
         # get the root and the hero from it
         root = self.area.getRoot()
@@ -102,16 +108,7 @@ class LevelState(GameState):
         if not self.area.hasChild(self.hero):
             self.area.add(self.hero)
 
-        # attach a camera
-        sw, sh = sd.get_size()
-        mw = sw * .75
-        mh = sh * .75
-        self.camera = LevelCamera(self.area,((4,4), (mw, mh)),
-                                  tmxdata=self.area.tmxdata)
-
-        self.mapBorder = pygame.Rect((0,0,mw+6,mh+6))
-        self.msgBorder = pygame.Rect((0,mh,sw,sh-mh))
-        self.hudBorder = pygame.Rect((mw,0,sw-mw,mh+6))
+        hero_body = self.area.getBody(self.hero)
 
         # make a list of elevators in the level
         self.elevators = tmxloader.buildDistributionRects(self.area.tmxdata,
@@ -122,7 +119,10 @@ class LevelState(GameState):
             res.playMusic(self.area.tmxdata.music)
         except AttributeError:
             res.fadeoutMusic()
-        
+            self.music_playing = False 
+        else:
+            self.music_playing = True       
+ 
         # load sounds from area
         for filename in self.area.soundFiles:
             SoundMan.loadSound(filename)
@@ -132,7 +132,7 @@ class LevelState(GameState):
         pass
 
        
-    def drawSidebar(self, surface, rect):
+    def drawInfobar(self, surface, rect):
         # draw the static portions of the sidebar
         sw, sh, sw, sh = rect
 
@@ -152,26 +152,33 @@ class LevelState(GameState):
 
 
     def draw(self, surface):
-        sw, sh = surface.get_size()
+        dirty = []
 
         if self.blank:
             self.blank = False
+            sw, sh = surface.get_size()
             surface.fill(self.background)
-            self.drawSidebar(surface, self.hudBorder)
+            mw = sw
+            mh = sh * .75
+            if not self.camera:
+                self.camera = LevelCamera(self.area,((4,4), (mw, mh)),
+                                          tmxdata=self.area.tmxdata)
+            self.mapBorder = pygame.Rect((0,0,mw,mh+6))
+            self.msgBorder = pygame.Rect((0,mh,sw,sh-mh))
             self.border.draw(surface, self.msgBorder)
-            self.camera.blank = True
             dirty = [((0,0), (sw, sh))]
 
         # the main map
         self.camera.center(self.area.getPosition(self.hero))
-        dirty = self.camera.draw(surface)
-
-        if self.area.drawables:
-            [ o.draw(surface) for o in self.area.drawables ]
-            self.blank = True
+        dirty.extend(self.camera.draw(surface))
 
         # borders
         self.border.draw(surface, self.mapBorder)
+
+        # hack
+        if self.area.drawables:
+            [ o.draw(surface) for o in self.area.drawables ]
+            self.blank = True
 
         #log = "\n".join(self.area.messages[-5:])
         #rect = self.msgBorder.inflate(-16,-12)
@@ -181,6 +188,8 @@ class LevelState(GameState):
 
 
     def update(self, time):
+        if self.blank: return
+
         self.area.update(time)
         self.camera.update(time)
 
@@ -300,7 +309,14 @@ class LevelState(GameState):
 
 @receiver(emitSound)
 def playSound(sender, **kwargs):
-    SoundMan.play(kwargs['filename'])
+    x1, y1, z1 = kwargs['position']
+    x2, y2, z2 = hero_body.bbox.origin
+    d = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
+    try:
+        vol = 1/d * 20 
+    except ZeroDivisionError:
+        vol = 1.0
+    SoundMan.play(kwargs['filename'], volume=vol)
 
 
 @receiver(bodyAbsMove)

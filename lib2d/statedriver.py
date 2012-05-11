@@ -269,7 +269,31 @@ class StateDriver(object):
             currentState = originalState
 
             if currentState:
-                time = time / 4.0
+                time = time / 10.0
+
+                currentState.update(time)
+                currentState = current_state()
+                if not currentState == originalState: continue
+
+                currentState.update(time)
+                currentState = current_state()
+                if not currentState == originalState: continue
+
+                originalState.update(time)
+                currentState = current_state()
+                if not currentState == originalState: continue
+
+                currentState.update(time)
+                currentState = current_state()
+                if not currentState == originalState: continue
+
+                currentState.update(time)
+                currentState = current_state()
+                if not currentState == originalState: continue
+
+                currentState.update(time)
+                currentState = current_state()
+                if not currentState == originalState: continue
 
                 originalState.update(time)
                 currentState = current_state()

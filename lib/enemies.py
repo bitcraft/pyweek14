@@ -14,7 +14,6 @@ class Laser(GameObject):
         self.time += time
         if self.time >= self.ttl:
             self.destroy()
-            pass
 
     def draw(self, surface):
         surface.fill((255,randint(0,255),255))
@@ -29,9 +28,12 @@ class LaserRobot(AvatarObject):
         self.time = 0
         self.warned = False
         self.pushable = True
+        self.active = True
 
 
     def update(self, time):
+        if not self.active: return
+
         self.time += time
         if self.time >= self.rate:
             self.time -= self.rate

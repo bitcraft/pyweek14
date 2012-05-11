@@ -169,7 +169,7 @@ class Area(AbstractArea):
         self._addQueue = []
         self._removeQueue = []
         self.drawables = []      # HAAAAKCCCCKCK
-
+        self.changedAvatars = True #hack
         self._grounded = {}
 
         self.inUpdate = False
@@ -222,6 +222,7 @@ class Area(AbstractArea):
         self.bodies[thing] = body
         AbstractArea.add(self, thing)
         #AbstractArea.add(self, body)
+        self.changedAvatars = True
 
 
     def remove(self, thing):
@@ -231,12 +232,14 @@ class Area(AbstractArea):
 
         AbstractArea.remove(self, thing)
         del self.bodies[thing]
+        self.changedAvatars = True
 
         # hack
         try:
             self.drawables.remove(thing)
         except (ValueError, IndexError):
             pass
+
 
 
     def movePosition(self, body, (x, y, z), push=True, caller=None, \
@@ -465,7 +468,7 @@ class Area(AbstractArea):
         self.sounds = [ s for s in self.sounds if not s.done ]
         if filename not in [ s.filename for s in self.sounds ]:
             if thing:
-                pos = self.bodies[thing]
+                pos = self.bodies[thing].bbox.origin
             emitSound.send(sender=self, filename=filename, position=pos)
             self.sounds.append(Sound(filename, ttl))
 
@@ -505,39 +508,31 @@ class Area(AbstractArea):
         basic gravity
         """
       
-        time = time / 80
-        a = body.acc
-
-        # de-accel vertical movement
-        if body.isFalling and a.y < 0:
-            a += (0, 1)
-
-        v = a * time
+        time = time / 100
 
         if body.gravity:
-            v += Vec2d((0, 9.8)) * time
+            body.acc += Vec2d((0, 9.8)) * time
     
-        # v is our velocity
+        v = body.acc * time
         y, z = v
-        body.acc = a
 
         if not y==0:
             self.movePosition(body, (0, y, 0))
 
         if z > 0: 
             falling = self.movePosition(body, (0, 0, z))
-            if falling and not body.isFalling:
+            if falling:
                 body.isFalling = True
                 self._grounded[body] = False
-            elif not falling and body.isFalling:
+            elif not falling:
                 body.isFalling = False
-                self._grounded[body] = True 
+                self._grounded[body] = True
+                body.acc.y = 0
         elif z < 0:
             flying = self.movePosition(body, (0, 0, z))
             if flying:
                 self._grounded[body] = False
                 body.isFalling = True
-
 
     # platformer
     def grounded(self, body):

@@ -53,7 +53,7 @@ class cMenu():
         self.font = font                          # Font to use
         self.font_size = font_size
 
-        self.rect = rect                          # Top left corner (of surface)
+        self.rect = pygame.Rect(rect)             # Top left corner (of surface)
         self.change_number = number               # new row/col #
         self.orientation = orientation
         self.horizontal_padding = h_pad

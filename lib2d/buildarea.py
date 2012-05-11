@@ -32,8 +32,8 @@ def fromTMX(parent, mapname):
             pass
 
     # set the boundries (extent) of this map
-    area.setExtent(((0,0), \
-        (data.height * data.tileheight, data.width * data.tilewidth)))
+    area.setExtent(((0,0),
+        (data.width * data.tilewidth, data.height * data.tileheight)))
 
     props = data.getTilePropertiesByLayer(-1)
 

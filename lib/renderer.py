@@ -2,6 +2,7 @@ from lib2d.tilemap import BufferedTilemapRenderer
 from lib2d.objects import AvatarObject
 from pygame import Rect, draw
 
+import weakref
 
 
 def screenSorter(x):
@@ -22,27 +23,36 @@ class LevelCamera(object):
 
         # create a renderer for the map
         self.maprender = BufferedTilemapRenderer(tmxdata, rect)
-
         self.map_width = tmxdata.tilewidth * tmxdata.width
         self.map_height = tmxdata.tileheight*tmxdata.height
-        #self.center(self.extent.center)
         self.blank = True
 
-        # load the children
-        for child in self.area.getChildren():
-            child.load()
-
         # add the avatars
-        for child in self.area.getChildren():
-            if isinstance(child, AvatarObject):
-                child.avatar.update(0)              # hack to re-init avatar
+        #for child in self.area.getChildren():
+        ##    if isinstance(child, AvatarObject):
+        #        child.avatar.update(0)              # hack to re-init avatar
+
+        self.ao = self.refreshAvatarObjects()
  
+
+    def refreshAvatarObjects(self):
+        return [ i for i in self.area.getChildren() if hasattr(i, "avatar") ]
+        
+
+    # HACK
+    def getAvatarObjects(self):
+        if self.area.changedAvatars:
+            self.ao = self.refreshAvatarObjects()
+            self.area.changedAvatars = False
+        return self.ao
+
 
     def set_extent(self, extent):
         """
         the camera caches some values related to the extent, so it becomes
         nessessary to call this instead of setting the extent directly.
         """
+
         self.extent = Rect(extent)
         self.half_width = self.extent.width / 2
         self.half_height = self.extent.height / 2
@@ -53,8 +63,7 @@ class LevelCamera(object):
 
     def update(self, time):
         self.maprender.update(None)
-        [ o.avatar.update(time) for o in self.area.getChildren()
-          if hasattr(o, "avatar") ]
+        [ ao.avatar.update(time) for ao in self.getAvatarObjects() ]
 
 
     def center(self, pos):
@@ -93,14 +102,15 @@ class LevelCamera(object):
 
 
     def draw(self, surface):
-        avatarobjects = [ i for i in self.area.getChildren()
-                         if isinstance(i, AvatarObject) ]
+        avatarobjects = self.getAvatarObjects()
+
         onScreen = []
 
         if self.blank:
             self.blank = False
             self.maprender.blank = True
 
+        # needs to be optimized!
         for a in avatarobjects:
             x, y, z, d, w, h, = self.area.getBBox(a)
             x, y = self.toSurface((x, y, z))
@@ -111,7 +121,6 @@ class LevelCamera(object):
                 onScreen.append((a, Rect(self.toScreen((x, y)), (w, h))))
 
         onScreen = [ (a.avatar.image, r, 1, a) for a, r in onScreen ]
-        #onScreen.sort(key=screenSorter)
 
         return self.maprender.draw(surface, onScreen)
 

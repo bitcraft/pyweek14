@@ -130,6 +130,10 @@ class Avatar(GameObject):
         self._is_paused = bool(value)
 
 
+    def unload(self):
+        self.curImage = None
+
+
     def update(self, time):
         """
         call this as often as possible with a time.  the units in the
