@@ -7,10 +7,10 @@ from random import randint
 
 class Lift(AvatarObject):
     sounds = ["lift.wav"]
+    gravity = False
 
     def __init__(self):
         AvatarObject.__init__(self)
-        self.gravity = False
         self.direction = 0
         self.caller = None
         self.destination = None
@@ -58,9 +58,9 @@ class Lift(AvatarObject):
 
 class Callbutton(AvatarObject):
     sounds = ['pushbutton.wav']
+    gravity = False
 
-
-    def use(self):
+    def use(self, user=None):
         self.on()
         body = self.parent.getBody(self)
         lift = self.parent.getChildByGUID(self.liftGUID) 
@@ -78,3 +78,16 @@ class Callbutton(AvatarObject):
 
 class Key(AvatarObject):
     pass
+
+
+class Terminal(AvatarObject):
+    sounds = ['terminal.wav']
+    gravity = False
+
+
+    def use(self, user=None):
+        self.animate()
+
+    def animate(self):
+        self.avatar.play('glow', loop=2)
+        self.parent.emitSound("terminal.wav", thing=self)

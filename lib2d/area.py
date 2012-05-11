@@ -470,8 +470,9 @@ class Area(AbstractArea):
             raise ValueError, "emitText requires a position or thing"
 
         if thing:
-            pos = self.bodies[thing].bbox.origin
+            pos = self.bodies[thing].bbox.center
         emitText.send(sender=self, text=text, position=pos)
+        self.messages.append(text)
 
 
     def emitSound(self, filename, pos=None, thing=None, ttl=500):
@@ -481,7 +482,7 @@ class Area(AbstractArea):
         self.sounds = [ s for s in self.sounds if not s.done ]
         if filename not in [ s.filename for s in self.sounds ]:
             if thing:
-                pos = self.bodies[thing].bbox.origin
+                pos = self.bodies[thing].bbox.center
             emitSound.send(sender=self, filename=filename, position=pos)
             self.sounds.append(Sound(filename, ttl))
 

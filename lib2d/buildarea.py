@@ -13,9 +13,9 @@ def fromTMX(parent, mapname):
     """
 
     # for platformer maps
-    def toWorld(data, (x, y, l)):
+    def toWorld(data, (x, y, z)):
         """ translate tiled map coordinates to world coordinates """
-        return 0, x*data.tileheight, (y-2)*data.tilewidth
+        return z, x*data.tileheight, (y-2)*data.tilewidth
 
 
     area = Area()
@@ -63,7 +63,6 @@ def fromTMX(parent, mapname):
             raise Exception, msg.format(gid)
 
         body = area._parent.getChildByGUID(int(prop['guid']))
-
         area.add(body, toWorld(data, pos.pop()))
         area.setOrientation(body, "south")
 
@@ -126,21 +125,34 @@ def fromTMX(parent, mapname):
             else:
                 body = original            
 
+            x, y, z = toWorld(data, pos)
             body.liftGUID = prop['guid'] + 512
-
-            area.add(body, toWorld(data, pos))
+            area.add(body, (0, y, z+17))
             area.setOrientation(body, "south")
             copy = True 
 
+    # load the terminals and place them in the default positions 
+    terms = [ p for p in props if 1280 < p[1]['guid'] < 1500 ] 
+
+    for (gid, prop) in terms:
+        pos = data.getTileLocation(gid)
+        if len(pos) > 1:
+            msg = "control gid: {} is used in more than one locaton"
+            raise Exception, msg.format(gid)
+
+        x, y, z = toWorld(data, pos.pop())
+        body = area._parent.getChildByGUID(int(prop['guid']))
+        area.add(body, (0, y, z+17))
+        area.setOrientation(body, "south")
 
     # handle the exits
     # here only the exits and positions are saved
     # another class will have to finalize the exits by adding a ref to
     # guid of the other area
-    exits = [ p for p in props if p[1].get('group', None) == 'door' ]
-    for gid, prop in exits:
-        x, y, l = toWorld(data, data.getTileLocation(gid)[0])
-        area.exits[prop['guid']] = ((x, y, l), None)
+    #exits = [ p for p in props if p[1].get('group', None) == 'door' ]
+    #for gid, prop in exits:
+    #    x, y, l = toWorld(data, data.getTileLocation(gid)[0])
+    #    area.exits[prop['guid']] = ((x, y, l), None)
 
     return area
 

@@ -14,11 +14,10 @@ class Laser(GameObject):
         self.time = 0
 
     def update(self, time):
-        print self.time, time
         self.time += time
         if self.time >= self.ttl:
             self.destroy()
-        self.parent.flash = True
+        self.parent.flash = self.parent.getBody(self).bbox.center
 
 
 class LaserRobot(AvatarObject):
@@ -30,7 +29,7 @@ class LaserRobot(AvatarObject):
         self.time = 0
         self.warned = False
         self.pushable = True
-        self.active = True
+        self.active = False
 
 
     def update(self, time):

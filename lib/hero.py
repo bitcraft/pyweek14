@@ -32,6 +32,7 @@ class Hero(AvatarObject):
         other = getNearby(self, 2)
         if not other:
             return
+        
+        if hasattr(other, "use"):
+            other.use(self)
 
-        if isinstance(other, Callbutton):
-            other.use()

@@ -165,7 +165,7 @@ class LevelState(GameState):
         i = titleFont.render("PyWeek", 1, self.foreground)
         surface.blit(i, (sw/2+sw-i.get_size()[0]/2, sh+5))
 
-        headFont = pygame.font.Font(res.fontPath("volter.ttf"), 9)
+        headFont = pygame.font.Font(res.fontPath("volter.ttf"), 7)
 
         i = headFont.render("Inventory", 1, self.foreground, self.background)
         surface.blit(i, (sw+ 10, sh+30))
@@ -174,7 +174,18 @@ class LevelState(GameState):
     def draw(self, surface):
         dirty = []
 
-        if self.blank and not self.area.flash:
+        if self.area.flash:
+            x1, y1, z1 = self.area.flash
+            x2, y2, z2 = hero_body.bbox.center
+            self.area.flash = False
+            d = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
+            if d < 600:
+                self.blank = True
+                surface.fill((255,randint(0,255),255))
+                dirty = [ surface.get_rect() ]
+
+
+        elif self.blank:
             self.blank = False
             sw, sh = surface.get_size()
             surface.fill(self.background)
@@ -185,29 +196,24 @@ class LevelState(GameState):
                                           tmxdata=self.area.tmxdata)
             self.mapBorder = pygame.Rect((0,0,mw,mh+6))
             self.msgBorder = pygame.Rect((0,mh,sw,sh-mh))
-            self.border.draw(surface, self.msgBorder)
             dirty = [((0,0), (sw, sh))]
             self.updateText = True
 
 
-        if self.area.flash:
-            self.blank = True
-            self.area.flash = False
-            surface.fill((255,randint(0,255),255))
-            dirty = [ surface.get_rect() ]
-
         else:
+            if self.updateText:
+                self.updateText = False
+                surface.fill(self.background, self.msgBorder)
+                self.border.draw(surface, self.msgBorder)
+                log = "\n".join(self.area.messages[-5:])
+                rect = self.msgBorder.inflate(-16,-12).move(0,1)
+                gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
+                gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
+                dirty.append(self.msgBorder)
+
             self.camera.center(self.area.getPosition(self.hero))
             dirty.extend(self.camera.draw(surface))
             self.border.draw(surface, self.mapBorder)
-
-        if self.updateText:
-            self.updateText = False
-            log = "\n".join(self.messages[-5:])
-            rect = self.msgBorder.inflate(-16,-12).move(0,1)
-            gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
-            gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
-
 
         return dirty
 
@@ -341,7 +347,7 @@ def displayText(sender, **kwargs):
     x1, y1, z1 = kwargs['position']
     x2, y2, z2 = hero_body.bbox.origin
     d = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
-    state.addText(kwargs['text'])
+    state.updateText = True
 
 
 @receiver(emitSound)

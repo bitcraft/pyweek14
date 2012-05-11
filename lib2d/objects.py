@@ -27,6 +27,7 @@ class GameObject(object):
     """
 
     sounds = []
+    gravity = True
 
     def __init__(self, parent=None):
         self.short_name = str(self.__class__)
@@ -42,7 +43,6 @@ class GameObject(object):
         self.guid = None
         self.isFalling = False
         self.isAlive = True
-        self.gravity = True
 
 
     def __repr__(self):

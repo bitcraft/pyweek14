@@ -236,6 +236,11 @@ class BBox(object):
 
 
     @property
+    def center(self):
+        return self._x + self._d / 2, self._y + self._w / 2, self._z + self._h /2
+
+
+    @property
     def width(self):
         return self._w
 

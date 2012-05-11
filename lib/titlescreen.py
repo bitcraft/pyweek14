@@ -69,7 +69,7 @@ class TitleScreen(GameState):
     def continue_game(self):
         if self.game == None:
             try:
-                path = os.path.join("resources", "save", "save")
+                path = os.path.join("resources", "saves", "save")
                 self.game = loadObject(path)
             except IOError:
                 return self.new_game()

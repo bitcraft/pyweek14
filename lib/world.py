@@ -9,8 +9,24 @@ from lib.misc import *
 from lib2d import res
 
 from collections import defaultdict
-import os
+import os, random, types
 
+
+mootFlavour = \
+"""Nothing special seems to happen.
+As hard as you try, you just cannot make anything happen.
+Nothing.
+You lean to to examine it closely, then yawn.  Nothing happens.
+I know right, I'm just as bored as you are.  Nothing happens.""".split("\n")
+
+termMootFlavour = \
+"""You press a few blinking buttons, but nothing seems to happen.
+Click, click, click.  Nothing.
+Is this thing even working?
+Hitting keys at random has caused nothing to happen.
+As you watch the terminal, you wish you were somewhere else.""".split("\n")
+
+print termMootFlavour
 
 def build():
 
@@ -110,7 +126,7 @@ def build():
     npc.setName("Callbutton")
     npc.setAvatar(avatar)
     npc.setGUID(257)
-    npc.size = (4, 16, 32)
+    npc.size = (4, 16, 16)
     uni.add(npc)
 
     npc = npc.copy()
@@ -123,6 +139,32 @@ def build():
 
     npc = npc.copy()
     npc.setGUID(260)
+    uni.add(npc)
+
+
+    # terminals
+    def deadterm(self, user):
+        area = user.parent
+        area.emitText(random.choice(termMootFlavour), thing=self)
+        self.animate()
+
+    avatar = Avatar()
+    ani = Animation("terminal-idle.png", "idle", 8, 1, 300)
+    avatar.add(ani)
+    ani = Animation("terminal-glow.png", "glow", 8, 1, 80)
+    avatar.add(ani)
+    npc = Terminal()
+    npc.setName("Terminal")
+    npc.setGUID(1281)
+    npc.setAvatar(avatar)
+    npc.size = (4,16,16)
+    npc.use = types.MethodType(deadterm, npc)
+    uni.add(npc)
+
+        
+
+    npc = npc.copy()
+    npc.setGUID(1282)
     uni.add(npc)
 
 
@@ -142,8 +184,6 @@ def build():
     #    [ i.unload() for i in ao.avatar.getChildren() ]
 
 
-
-
     # always load the levels last since they may duplicate objects
     level = fromTMX(uni, "start.tmx")
     level.setName("Start")
@@ -158,12 +198,6 @@ def build():
     for lift in [ i for i in uni.getChildren() if isinstance(i, Lift) ]:
         body = lift.parent.getBody(lift)
         body.bbox = body.bbox.move(0,0,1)
-
-
-    # move buttons back so they don't collide with stuff
-    for button in [ i for i in uni.getChildren() if isinstance(i, Callbutton) ]:
-        body = lift.parent.getBody(button)
-        body.bbox = body.bbox.move(4,0,1)
 
 
     return uni
