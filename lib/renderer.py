@@ -110,7 +110,7 @@ class LevelCamera(object):
             if self.extent.colliderect((x, y, w, h)):
                 onScreen.append((a, Rect(self.toScreen((x, y)), (w, h))))
 
-        onScreen = [ (a.avatar.image, r, 0, a) for a, r in onScreen ]
+        onScreen = [ (a.avatar.image, r, 1, a) for a, r in onScreen ]
         #onScreen.sort(key=screenSorter)
 
         return self.maprender.draw(surface, onScreen)
