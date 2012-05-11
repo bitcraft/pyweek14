@@ -9,6 +9,7 @@ from lib2d.quadtree import QuadTree, FrozenRect
 from lib2d import res, gui
 from pytmx import tmxloader
 
+from random import randint
 from math import sqrt, atan2
 from operator import itemgetter
 import pygame
@@ -154,7 +155,7 @@ class LevelState(GameState):
     def draw(self, surface):
         dirty = []
 
-        if self.blank:
+        if self.blank and not self.area.flash:
             self.blank = False
             sw, sh = surface.get_size()
             surface.fill(self.background)
@@ -168,17 +169,17 @@ class LevelState(GameState):
             self.border.draw(surface, self.msgBorder)
             dirty = [((0,0), (sw, sh))]
 
-        # the main map
-        self.camera.center(self.area.getPosition(self.hero))
-        dirty.extend(self.camera.draw(surface))
 
-        # borders
-        self.border.draw(surface, self.mapBorder)
-
-        # hack
-        if self.area.drawables:
-            [ o.draw(surface) for o in self.area.drawables ]
+        if self.area.flash:
             self.blank = True
+            self.area.flash = False
+            surface.fill((255,randint(0,255),255))
+            dirty = [ surface.get_rect() ]
+
+        else:
+            self.camera.center(self.area.getPosition(self.hero))
+            dirty.extend(self.camera.draw(surface))
+            self.border.draw(surface, self.mapBorder)
 
         #log = "\n".join(self.area.messages[-5:])
         #rect = self.msgBorder.inflate(-16,-12)

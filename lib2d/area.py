@@ -168,10 +168,12 @@ class Area(AbstractArea):
         self.inUpdate = False
         self._addQueue = []
         self._removeQueue = []
+        self._addQueue = []
         self.drawables = []      # HAAAAKCCCCKCK
         self.changedAvatars = True #hack
         self._grounded = {}
 
+        self.flash = False
         self.inUpdate = False
         self._removeQueue = []
 
@@ -224,6 +226,8 @@ class Area(AbstractArea):
         #AbstractArea.add(self, body)
         self.changedAvatars = True
 
+        print "adding ", thing
+
 
     def remove(self, thing):
         if self.inUpdate:
@@ -239,7 +243,6 @@ class Area(AbstractArea):
             self.drawables.remove(thing)
         except (ValueError, IndexError):
             pass
-
 
 
     def movePosition(self, body, (x, y, z), push=True, caller=None, \
@@ -480,24 +483,13 @@ class Area(AbstractArea):
         [ sound.update(time) for sound in self.sounds ]
 
         # awkward looping allowing objects to be added/removed during update
-        counter = 0
-        offset = 0
-        things = self.bodies.keys()
-        while counter + offset < len(things):
-            try:
-                thing = things[counter]
-            except IndexError:
-                things = [ t for t in self.bodies.keys() if not t in things ]
-                counter = 0
-                #offset = counter
-                #counter = 0
-                continue
-
-            self.updatePhysics(self.bodies[thing], time)
+        for thing, body in self.bodies.items():
+            self.updatePhysics(body, time)
             thing.update(time)
-            counter += 1
 
         self.inUpdate = False
+        [ self.add(thing) for thing in self._addQueue ] 
+        self._addQueue = []
         [ self.remove(thing) for thing in self._removeQueue ] 
         self._removeQueue = []
 

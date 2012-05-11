@@ -36,14 +36,15 @@ class LevelCamera(object):
  
 
     def refreshAvatarObjects(self):
-        return [ i for i in self.area.getChildren() if hasattr(i, "avatar") ]
+        return [ i for i in self.area.getChildren()
+                 if hasattr(i, "avatar") ]
         
 
     # HACK
     def getAvatarObjects(self):
         if self.area.changedAvatars:
-            self.ao = self.refreshAvatarObjects()
             self.area.changedAvatars = False
+            self.ao = self.refreshAvatarObjects()
         return self.ao
 
 
@@ -63,7 +64,13 @@ class LevelCamera(object):
 
     def update(self, time):
         self.maprender.update(None)
-        [ ao.avatar.update(time) for ao in self.getAvatarObjects() ]
+        for ao in self.refreshAvatarObjects():
+            if ao: 
+                # HACK
+                try:
+                   ao.avatar.update(time)
+                except:
+                    pass
 
 
     def center(self, pos):
@@ -102,7 +109,7 @@ class LevelCamera(object):
 
 
     def draw(self, surface):
-        avatarobjects = self.getAvatarObjects()
+        avatarobjects = self.refreshAvatarObjects()
 
         onScreen = []
 
@@ -110,7 +117,6 @@ class LevelCamera(object):
             self.blank = False
             self.maprender.blank = True
 
-        # needs to be optimized!
         for a in avatarobjects:
             x, y, z, d, w, h, = self.area.getBBox(a)
             x, y = self.toSurface((x, y, z))

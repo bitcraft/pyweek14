@@ -274,7 +274,7 @@ class Avatar(GameObject):
                 playing = True
             del self.animations[other.name]
         
-        print "av remove", self, other, playing
+        GameObject.remove(self, other)
 
         # handle when there are no animations left
         if len(self.animations) == 0:
@@ -283,12 +283,10 @@ class Avatar(GameObject):
             self.curImage = None
             self.curFrame = None
             self.default = None
-            self.paused = True
+            self._is_paused = True
         elif playing:
-            self.default = self.setDefault(self.animations.keys()[0])
+            self.setDefault(self.animations.keys()[0])
             self.reset()
-
-        GameObject.remove(self, other)
 
 
     def getAnimation(self, name):
@@ -307,9 +305,8 @@ class Avatar(GameObject):
         set the defualt animation to play if the avatar has nothing else to do
         """
 
-        if isinstance(name, Animation):
+        if isinstance(name, Animation) or isinstance(name, StaticAnimation):
             self.default = name
-            return
         else:
             try:
                 self.default = self.getAnimation(name)
@@ -404,7 +401,6 @@ class Animation(GameObject):
 
     def getTTL(self, number):
         if self.images == []:
-            print self.timing, self
             raise Exception, "Avatar hasn't loaded images yet"
 
         return self.timing[number]
@@ -429,8 +425,8 @@ class Animation(GameObject):
         try:
             return self.images[number+d*self.real_frames]
         except IndexError:
-            msg="Cannot find image for animation, direction should be radians"
-            raise ValueError, msg
+            msg="{} cannot find image for animation ({}/{})"
+            raise IndexError, msg.format(self, number+d*self.real_frames, len(self.images))
 
 
     def __repr__(self):

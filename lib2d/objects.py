@@ -45,6 +45,10 @@ class GameObject(object):
         self.gravity = True
 
 
+    def __repr__(self):
+        return "<{}: \"{}\">".format(self.__class__.__name__, self.name)
+    
+
     def returnNew(self):
         """
         override this if the constructor requires any special arguments
@@ -131,6 +135,8 @@ class GameObject(object):
 
 
     def remove(self, other):
+        print ">>", self, "removing", other
+
         try:
             self._children.remove(other)
             other._parent = None
@@ -241,14 +247,15 @@ class GameObject(object):
         game and references cleared.
         """
 
-        print "dest", self, self._parent
-
-        self.unload()
-        for child in self._children:
-            child.destroy()
+        print "being dest", self
+        name = "DEAD-{}".format(self.name)
         if self._parent:
             self._parent.remove(self)
+        for child in self._children:
+            child.destroy()
         self._children = []
+        self.unload()
+        self.name = name
 
 
     def setParent(self, parent):
@@ -298,16 +305,16 @@ class AvatarObject(GameObject):
 
     def add(self, other):
         from avatar import Avatar
+        GameObject.add(self, other)
         if isinstance(other, Avatar):
             self._avatar = other
-        GameObject.add(self, other)
 
 
     def remove(self, other):
         from avatar import Avatar
+        GameObject.remove(self, other)
         if isinstance(other, Avatar):
             self._avatar = None
-        GameObject.remove(self, other)
 
 
     @property    
