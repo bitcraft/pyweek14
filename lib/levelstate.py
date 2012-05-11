@@ -1,4 +1,5 @@
 from renderer import LevelCamera
+from misc import Lift
 
 from lib2d.gamestate import GameState
 from lib2d.statedriver import driver as sd
@@ -17,9 +18,22 @@ import os.path
 
 import time
 
+
 debug = 1
 
 movt_fix = 1/sqrt(2)
+
+def getNearby(thing, d):
+    body = thing.parent.getBody(thing)
+    bbox = body.bbox.inflate(d,d,d)
+
+    l = thing.parent.testCollideObjects(bbox)
+    l.remove(body)
+
+    if l:
+        return l.pop().parent
+    else:
+        return None
 
 
 class SoundManager(object):
@@ -48,7 +62,7 @@ SoundMan = SoundManager()
 
 
 # GLOBAL LEET SKILLS
-heroBody = None
+hero_body = None
 state = None
 
 
@@ -128,6 +142,11 @@ class LevelState(GameState):
         # load sounds from area
         for filename in self.area.soundFiles:
             SoundMan.loadSound(filename)
+
+
+        self.text = {}
+        self.text['grab'] = "You grab onto {}"
+        self.text['ungrab'] = "You let go of {}"
 
         self.reactivate()
 
@@ -262,12 +281,9 @@ class LevelState(GameState):
                     if playing == "crouch":
                         self.hero.avatar.play("uncrouch", loop=0)
 
-                elif cmd == P1_LEFT:
-                    y = 0
-                elif cmd == P1_RIGHT:
-                    y = 0
-                elif cmd == P1_ACTION2:
-                    pass
+                elif cmd == P1_LEFT: y = 0
+                elif cmd == P1_RIGHT: y = 0
+                elif cmd == P1_ACTION1: self.handleActionKey(False)
 
             # these actions will repeat as button is held down
             elif arg == BUTTONDOWN or arg == BUTTONHELD:
@@ -291,15 +307,40 @@ class LevelState(GameState):
                     self.hero.avatar.flip = 0
 
                 if cmd == P1_ACTION2:
-                    z = -self.hero_jump
+                    if not self.hero.held:
+                        z = -self.hero_jump
 
             # these actions will not repeat if button is held
             if arg == BUTTONDOWN:
-                if cmd == P1_ACTION1:
-                    self.hero.use()
+                if cmd == P1_ACTION1: self.handleActionKey(True)
 
+        # don't rotate the player if he's grabbing something
+        if self.hero.held:
+            self.area.setOrientation(self.hero, atan2(y, z))
 
         self.player_vector = x, y*self.hero.move_speed, z
+
+
+    def handleActionKey(self, pressed):
+        if pressed:
+            other = getNearby(self.hero, 2)
+            if other:
+                if hasattr(other, "use"):
+                    other.use(self.hero)
+
+                elif other.pushable and not self.hero.held:
+                    body0 = self.hero.parent.getBody(self.hero)
+                    body1 = self.hero.parent.getBody(other)
+                    self.hero.parent.join(body0, body1)
+                    self.hero.held = body1
+                    msg = self.text['grab'].format(other.name) 
+                    self.hero.parent.emitText(msg, thing=self.hero)
+        else:
+            if self.hero.held:
+                self.hero.parent.unjoin(hero_body, self.hero.held)
+                msg = self.text['ungrab'].format(self.hero.held.parent.name)
+                self.hero.parent.emitText(msg, thing=self.hero)
+                self.hero.held = None
 
 
     def findLift(self, offset):
@@ -310,10 +351,9 @@ class LevelState(GameState):
         for rect in self.elevators:
             if rect.colliderect(shaftRect):
                 l = self.area.testCollideObjects(liftbbox)
-                l.remove(body)
-                if l:
-                    lift = l.pop()
-                    return lift
+                lift = [ i for i in l if isinstance(i.parent, Lift) ]
+                if lift:
+                    return lift.pop()
 
         return None
 

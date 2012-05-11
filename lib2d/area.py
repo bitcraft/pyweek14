@@ -292,7 +292,7 @@ class Area(AbstractArea):
 
         # if joined, then add it to collisions and treat it is if being pushed
         if joins:
-            collide.extend(joins)
+            collide.extend(b for b in joins if not b == body)
             push = True
 
         # handle collisions with bodies
@@ -475,7 +475,7 @@ class Area(AbstractArea):
         self.messages.append(text)
 
 
-    def emitSound(self, filename, pos=None, thing=None, ttl=500):
+    def emitSound(self, filename, pos=None, thing=None, ttl=300):
         if pos==thing==None:
             raise ValueError, "emitSound requires a position or thing"
 
@@ -621,8 +621,17 @@ class Area(AbstractArea):
 
     #  CLIENT API  --------------
 
+    def join(self, body0, body1):
+        self.joins.append((body0, body1))
+
+
+    def unjoin(self, body0, body1):
+        self.joins.remove((body0, body1))
+
+
     def getRect(self, thing):
         return self.toRect(self.bodies[thing].bbox)
+
 
     def isGrounded(self, thing):
         return self.grounded(self.bodies[thing])

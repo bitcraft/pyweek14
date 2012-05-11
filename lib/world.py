@@ -161,8 +161,6 @@ def build():
     npc.use = types.MethodType(deadterm, npc)
     uni.add(npc)
 
-        
-
     npc = npc.copy()
     npc.setGUID(1282)
     uni.add(npc)
