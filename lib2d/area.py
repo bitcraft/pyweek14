@@ -464,6 +464,16 @@ class Area(AbstractArea):
     def _worldToTile(self, (x, y)):
         return int(y)/self.tmxdata.tileheight, int(x)/self.tmxdata.tilewidth
 
+
+    def emitText(self, text, pos=None, thing=None):
+        if pos==thing==None:
+            raise ValueError, "emitText requires a position or thing"
+
+        if thing:
+            pos = self.bodies[thing].bbox.origin
+        emitText.send(sender=self, text=text, position=pos)
+
+
     def emitSound(self, filename, pos=None, thing=None, ttl=500):
         if pos==thing==None:
             raise ValueError, "emitSound requires a position or thing"

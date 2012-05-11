@@ -9,6 +9,7 @@ bodyRelMove = Signal(providing_args=["body", "position", "force"])
 bodyAbsMove = Signal(providing_args=["body", "position", "force"])
 bodyWarp    = Signal(providing_args=["body", "area"])
 emitSound   = Signal(providing_args=["filename", "position"])
+emitText    = Signal(providing_args=["text", "position"])
 
 # signals relevant for the engine
 timeSignal = Signal(providing_args=["time"])

@@ -55,12 +55,12 @@
    H4sIAAAAAAAAA+3WsQnAMBAEQQXfoG31X4uDQ8lHSgQr2IErYLMbI97KbmYDgw0M5IavsuWprLPhLBsYbGDYbSDbbZiVEdnAYAOTDQw2MNjAcONf6mxgsIHBBgYbGGxgsIHBBgYbGGxgsIGhN/wuBHnedCIAAA==
   </data>
  </layer>
- <layer name="Control" width="49" height="45" visible="0">
+ <layer name="Control" width="49" height="45" opacity="0.97">
   <properties>
    <property name="visible" value="false"/>
   </properties>
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+2YYQrCMAyFMz2BR5h6AY/g9P5nkv1aCenWyct46fJBoCK89TOklYmIDLJQriORDhzM+56uyzoiug+RynJgQ+83HfZxA+VkH/ipOdwbhV4X5G5sHmovo/rcYx+Y61Pcv3O9jfvYuw9r+VvPtn7r2neeoPJbHZ4OQv9G6pk+Qx++am4Q/8NQeS33WqSzNR04OIuDx9mKpPc+eJx9HtlH9MFyQJIO+5+BztZ5ng5r84HI31qzkw58RHTI9xpcVXOIQg8OJREdcqa5quYQhR4cSiI65ExzlXb4AUhlE8J0IgAA
+   H4sIAAAAAAAAA+2YbQ7CMAiGqZ7AI/hxAY/gx/3P5BJ/2BDoqgHlRZ6EpMsWxhNGm4yIqC2xoyeNMGnKGoksDtfta40I7wNSSA7R4PWWw28oh/hoDodJofPGshqZI6tlz64z9iFy8Dovwnns3YdR/rV3Sw7aPU+s8s86nByEPk3JZxq5D7fu+x853NlzFjNolW/mXEPaW8shBv/i4LG3WpK9Dx57n0fub/RBcrCkHN5/h3Vuns/TYTQfFvnX1tEph3ggOtR/jVihOaCQwaEH0aFmOlZoDihkcOhBdKiZjhXc4QHFhPqydCIAAA==
   </data>
  </layer>
 </map>

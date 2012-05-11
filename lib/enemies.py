@@ -71,6 +71,7 @@ class LaserRobot(AvatarObject):
     def warn(self):
         self.avatar.play("warn", loop=4)
         self.parent.emitSound("warn.wav", thing=self)
+        self.parent.emitText("A robot charges his laser.", thing=self)
 
 
     def shoot(self):

@@ -133,7 +133,7 @@ def playMusic(filename, *args, **kwargs):
     stopMusic()
     fullpath = musicPath(filename)
     pygame.mixer.music.load(fullpath)
-    pygame.mixer.music.play(kwargs.get("loops", -1))
+    pygame.mixer.music.play(kwargs.get("loops", -1), kwargs.get("start", 0.0))
 
 
 def stopMusic():

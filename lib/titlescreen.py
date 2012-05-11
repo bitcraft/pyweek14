@@ -24,7 +24,7 @@ class TitleScreen(GameState):
 
     def reactivate(self):
         if self.game:
-            self.menu = cMenu(((42,20), sd.get_size()),
+            self.menu = cMenu(((32,20), sd.get_size()),
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
                 ('Continue', self.continue_game),
@@ -33,7 +33,7 @@ class TitleScreen(GameState):
                 ('Quit', self.quit_game)],
                 font="visitor1.ttf", font_size=20)
         else:
-            self.menu = cMenu(((42,20), sd.get_size()),
+            self.menu = cMenu(((32,20), sd.get_size()),
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
                 ('Continue', self.continue_game),

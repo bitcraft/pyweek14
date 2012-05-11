@@ -39,13 +39,17 @@ class SoundManager(object):
             sound.set_volume(volume)
             sound.play()
 
+    def unload(self):
+        self.sounds = {}
+        self.last_played = {}
+
 
 SoundMan = SoundManager()
 
 
 # GLOBAL LEET SKILLS
 heroBody = None
-
+state = None
 
 
 class LevelState(GameState):
@@ -74,7 +78,8 @@ class LevelState(GameState):
     def __init__(self, area, startPosition=None):
         GameState.__init__(self)
         self.area = area
-
+        global state
+        state = self
 
     def activate(self):
         global hero_body
@@ -90,6 +95,11 @@ class LevelState(GameState):
         self.old_player_vector = (0,0,0)
         self.old_falling = None
         self.hero_jump = 25
+
+        self.music_pos = 0.0
+
+        self.updateText = False
+        self.messages = []
 
         self.camera = None
 
@@ -115,22 +125,31 @@ class LevelState(GameState):
         self.elevators = tmxloader.buildDistributionRects(self.area.tmxdata,
                          "Elevators", gid=None)
 
-        # play music if any has been set in tiled
-        try:
-            res.playMusic(self.area.tmxdata.music)
-        except AttributeError:
-            res.fadeoutMusic()
-            self.music_playing = False 
-        else:
-            self.music_playing = True       
- 
         # load sounds from area
         for filename in self.area.soundFiles:
             SoundMan.loadSound(filename)
 
+        self.reactivate()
+
 
     def deactivate(self):
-        pass
+        res.fadeoutMusic(1000)
+        # unload the children
+        for child in self.area.getChildren():
+            child.unload()
+        self.area.music_pos = float(pygame.mixer.music.get_pos()) / 1000
+        SoundMan.unload()   
+
+ 
+    def reactivate(self):
+        # play music if any has been set in tiled
+        try:
+            res.playMusic(self.area.tmxdata.music, start=self.area.music_pos)
+        except AttributeError:
+            res.fadeoutMusic()
+            self.music_playing = False 
+        else:
+            self.music_playing = True    
 
        
     def drawInfobar(self, surface, rect):
@@ -168,6 +187,7 @@ class LevelState(GameState):
             self.msgBorder = pygame.Rect((0,mh,sw,sh-mh))
             self.border.draw(surface, self.msgBorder)
             dirty = [((0,0), (sw, sh))]
+            self.updateText = True
 
 
         if self.area.flash:
@@ -181,12 +201,20 @@ class LevelState(GameState):
             dirty.extend(self.camera.draw(surface))
             self.border.draw(surface, self.mapBorder)
 
-        #log = "\n".join(self.area.messages[-5:])
-        #rect = self.msgBorder.inflate(-16,-12)
-        #gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
+        if self.updateText:
+            self.updateText = False
+            log = "\n".join(self.messages[-5:])
+            rect = self.msgBorder.inflate(-16,-12).move(0,1)
+            gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
+            gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
+
 
         return dirty
 
+
+    def addText(self, text):
+        self.messages.append(text)
+        self.updateText = True
 
     def update(self, time):
         if self.blank: return
@@ -306,6 +334,14 @@ class LevelState(GameState):
             self.area.movePosition(body, (0,0,2), push=False)
             lift.parent.animate()
             return True
+
+
+@receiver(emitText)
+def displayText(sender, **kwargs):
+    x1, y1, z1 = kwargs['position']
+    x2, y2, z2 = hero_body.bbox.origin
+    d = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
+    state.addText(kwargs['text'])
 
 
 @receiver(emitSound)
