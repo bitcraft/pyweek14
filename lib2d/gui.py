@@ -35,16 +35,16 @@ class GraphicBox(object):
     def __init__(self, filename, hollow=False):
         self.hollow = hollow
 
-        image = res.loadImage(filename, colorkey=True)
+        image = res.loadImage(filename, 0,0,1)
         iw, self.th = image.get_size()
         self.tw = iw / 9
         names = "nw ne sw se n e s w c".split()
         tiles = [ image.subsurface((i*self.tw, 0, self.tw, self.th))
                   for i in range(9) ]
 
-        if self.hollow:
-            ck = tiles[8].get_at((0,0))
-            [ t.set_colorkey(ck, RLEACCEL) for t in tiles ]
+        #if self.hollow:
+        #    ck = tiles[8].get_at((0,0))
+        #    [ t.set_colorkey(ck, RLEACCEL) for t in tiles ]
 
         self.tiles = dict(zip(names, tiles))
         self.background = self.tiles['c'].get_at((0,0))

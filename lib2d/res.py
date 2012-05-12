@@ -40,6 +40,7 @@ def debug(text):
 _resPath = "resources"
 _defaultFont = None
 
+global_colorkey = (48, 47, 46)
 
 
 class NoSound:
@@ -79,7 +80,7 @@ def imagePath(filename):
     return os.path.join(_resPath, "images", filename)
     
 
-def loadImage(name, alpha=False, colorkey=False):
+def loadImage(name, alpha=False, colorkey=False, fake=False):
     fullpath = imagePath(name)
 
     try:
@@ -89,12 +90,22 @@ def loadImage(name, alpha=False, colorkey=False):
         msg = "Cannot load image: {}"
         raise Exception, msg.format(fullpath)
 
-    if alpha:
+    if alpha or fake:
         image = image.convert_alpha()
+
+    if fake:
+        s = pygame.Surface(image.get_size())
+        s.fill(global_colorkey)
+        s.blit(image, (0,0))
+        s.set_colorkey(global_colorkey, pygame.RLEACCEL)
+        return s 
 
     elif colorkey:
         image = image.convert()
-        image.set_colorkey(image.get_at((0,0)), pygame.RLEACCEL)
+        if global_colorkey:
+            image.set_colorkey(global_colorkey, pygame.RLEACCEL)
+        else:
+            image.set_colorkey(image.get_at((0,0)), pygame.RLEACCEL)
 
     else:
         image = image.convert()

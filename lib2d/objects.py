@@ -28,13 +28,14 @@ class GameObject(object):
 
     sounds = []
     gravity = True
+    pushable = False
+
 
     def __init__(self, parent=None):
         self.short_name = str(self.__class__)
         self.short_desc = ""
         self.long_desc  = ""
         self.name       = ""
-        self.pushable   = False
         self.weight     = 1
         self.size       = (32, 32, 32)
         self._children  = []

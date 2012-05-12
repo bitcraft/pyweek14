@@ -40,7 +40,7 @@ def build():
     avatar = Avatar()
     ani = Animation("hero-idle.png", "stand", 9, 1, 100)
     avatar.add(ani)
-    ani = Animation("hero-walk.png", "walk", 10, 1, 100)
+    ani = Animation("hero-walk.png", "walk", 10, 1, 80)
     avatar.add(ani)
     ani = Animation("hero-crouch.png", "crouch", 5, 1, 30)
     avatar.add(ani)
@@ -80,8 +80,22 @@ def build():
     npc.setName("LaserRobot")
     npc.setAvatar(avatar)
     npc.setGUID(513)
-    npc.size = (4, 14, 30)
+    npc.size = (2, 14, 30)
     npc.avatar.axis = (-9,-2)
+    uni.add(npc)
+
+
+    # desk
+    avatar = Avatar()
+    ani = StaticAnimation("desk.png", "idle")
+    avatar.add(ani)
+    npc = InteractiveObject()
+    npc.setName("Desk")
+    npc.setAvatar(avatar)
+    npc.setGUID(514)
+    npc.size = (4, 42, 25)
+    npc.avatar.axis = (-2,-6)
+    npc.pushable = True
     uni.add(npc)
 
 
@@ -148,6 +162,20 @@ def build():
         area.emitText(random.choice(termMootFlavour), thing=self)
         self.animate()
 
+    def wakebots(self, user):
+        area = user.parent
+        if self.activated:
+            area.emitText("Your face is still throbbing from when you last hit the terminal with it.", thing=self)
+
+        else:
+            self.activated = True
+            bots = [ i for i in self.parent.getChildren() if isinstance(i, LaserRobot) ]
+            for bot in bots:
+                bot.activate()
+            area.emitText("Surprisingly, hitting your face against the keypad seemed to do something.", thing=self)
+
+        self.animate()
+
     avatar = Avatar()
     ani = Animation("terminal-idle.png", "idle", 8, 1, 300)
     avatar.add(ani)
@@ -162,7 +190,32 @@ def build():
     uni.add(npc)
 
     npc = npc.copy()
+    npc.use = types.MethodType(deadterm, npc)
     npc.setGUID(1282)
+    uni.add(npc)
+
+    npc = npc.copy()
+    npc.use = types.MethodType(wakebots, npc)
+    npc.setGUID(1283)
+    uni.add(npc)
+
+
+    # keyed doors
+    avatar = Avatar()
+    ani = StaticAnimation("door-closed.png", "closed")
+    avatar.add(ani)
+    ani = StaticAnimation("door-opened.png", "opened")
+    avatar.add(ani)
+    ani = Animation("door-opening.png", "opening", 8, 1, 30)
+    avatar.add(ani)
+    ani = Animation("door-closing.png", "closing", 8, 1, 30)
+    avatar.add(ani)
+    npc = Door()
+    npc.setName("Door")
+    npc.setGUID(1537)
+    npc.setAvatar(avatar)
+    npc.size = (10,32,48)
+    #npc.forceOff()
     uni.add(npc)
 
 
@@ -197,5 +250,10 @@ def build():
         body = lift.parent.getBody(lift)
         body.bbox = body.bbox.move(0,0,1)
 
+    pushback = ['Desk']
+
+    for i in [ i for i in uni.getChildren() if i.name in pushback ]:
+        body = lift.parent.getBody(i)
+        body.bbox = body.bbox.move(-4,0,0)
 
     return uni

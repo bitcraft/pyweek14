@@ -127,12 +127,12 @@ def fromTMX(parent, mapname):
 
             x, y, z = toWorld(data, pos)
             body.liftGUID = prop['guid'] + 512
-            area.add(body, (0, y, z+17))
+            area.add(body, (0, y-6, z+17))
             area.setOrientation(body, "south")
             copy = True 
 
     # load the terminals and place them in the default positions 
-    terms = [ p for p in props if 1280 < p[1]['guid'] < 1500 ] 
+    terms = [ p for p in props if 1280 < p[1]['guid'] < 1537 ] 
 
     for (gid, prop) in terms:
         pos = data.getTileLocation(gid)
@@ -144,6 +144,23 @@ def fromTMX(parent, mapname):
         body = area._parent.getChildByGUID(int(prop['guid']))
         area.add(body, (0, y, z+17))
         area.setOrientation(body, "south")
+
+
+    # load the closed doors and place them in the default positions 
+    terms = [ p for p in props if 1536 < p[1]['guid'] < 1600 ] 
+
+    for (gid, prop) in terms:
+        pos = data.getTileLocation(gid)
+        if len(pos) > 1:
+            msg = "control gid: {} is used in more than one locaton"
+            raise Exception, msg.format(gid)
+
+        x, y, z = toWorld(data, pos.pop())
+        body = area._parent.getChildByGUID(int(prop['guid']))
+        area.add(body, (0, y, z-16))
+        area.setOrientation(body, "south")
+
+
 
     # handle the exits
     # here only the exits and positions are saved

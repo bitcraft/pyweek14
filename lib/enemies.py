@@ -21,7 +21,7 @@ class Laser(GameObject):
 
 
 class LaserRobot(AvatarObject):
-    sounds = ["ex0.wav", "warn.wav"]
+    sounds = ["ex0.wav", "warn.wav", "whiz0.wav"]
 
     def __init__(self):
         AvatarObject.__init__(self)
@@ -29,11 +29,16 @@ class LaserRobot(AvatarObject):
         self.time = 0
         self.warned = False
         self.pushable = True
-        self.active = False
+        self.activated = False
+
+
+    def activate(self):
+        self.activated = True
+        self.parent.emitSound("whiz0.wav", thing=self)
 
 
     def update(self, time):
-        if not self.active: return
+        if not self.activated: return
 
         self.time += time
         if self.time >= self.rate:

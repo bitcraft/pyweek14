@@ -333,7 +333,7 @@ class Area(AbstractArea):
             if not prop == None:
                 name = prop.get('walkSound', False)
                 if name:
-                    self.emitSound(name, newbbox.bottomcenter)
+                    self.emitSound(name, newbbox.bottomcenter, ttl=600)
 
         try:
             # test for collisions with exits
@@ -475,7 +475,7 @@ class Area(AbstractArea):
         self.messages.append(text)
 
 
-    def emitSound(self, filename, pos=None, thing=None, ttl=300):
+    def emitSound(self, filename, pos=None, thing=None, ttl=350):
         if pos==thing==None:
             raise ValueError, "emitSound requires a position or thing"
 
@@ -516,8 +516,8 @@ class Area(AbstractArea):
         if body.gravity:
             body.acc += Vec2d((0, 9.8)) * time
     
-        v = body.acc * time
-        y, z = v
+        body.vel = body.acc * time
+        y, z = body.vel
 
         if not y==0:
             self.movePosition(body, (0, y, 0))
@@ -536,6 +536,7 @@ class Area(AbstractArea):
             if flying:
                 self._grounded[body] = False
                 body.isFalling = True
+
 
     # platformer
     def grounded(self, body):

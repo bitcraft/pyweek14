@@ -47,7 +47,7 @@ class SoundManager(object):
 
     def play(self, filename, volume=1.0):
         now = time.time()
-        if self.last_played[filename] + .1 <= now:
+        if self.last_played[filename] + .05 <= now:
             self.last_played[filename] = now
             sound = self.sounds[filename]
             sound.set_volume(volume)
@@ -106,9 +106,8 @@ class LevelState(GameState):
         self.border = gui.GraphicBox("dialog2-h.png", hollow=True)
         self.borderFilled = gui.GraphicBox("dialog2.png")
         self.player_vector = (0,0,0)
-        self.old_player_vector = (0,0,0)
-        self.old_falling = None
         self.hero_jump = 25
+        self.input_changed = False
 
         self.music_pos = 0.0
 
@@ -193,6 +192,13 @@ class LevelState(GameState):
     def draw(self, surface):
         dirty = []
 
+        x, y, z = self.player_vector
+        # true when idle and grounded
+        if (y==0) and (z==0) and not hero_body.isFalling and \
+            not self.hero.avatar.isPlaying("crouch") and \
+            not self.hero.avatar.isPlaying("uncrouch"):
+                self.hero.avatar.play("stand")
+
         if self.area.flash:
             x1, y1, z1 = self.area.flash
             x2, y2, z2 = hero_body.bbox.center
@@ -247,26 +253,16 @@ class LevelState(GameState):
         self.area.update(time)
         self.camera.update(time)
 
-        body = self.area.getBody(self.hero)
-
         # don't move around if not needed
-        if (not self.player_vector == self.old_player_vector) or \
-           (not body.isFalling == self.old_falling):
+        if self.input_changed:
+            self.input_changed = False
             x, y, z = self.player_vector
 
             # allows you to move in air
-            if body.isFalling:
-                self.area.setForce(body, (x/3,y/3,body.acc.y))
+            if hero_body.isFalling:
+                self.area.setForce(hero_body, (x/3,y/3, hero_body.acc.y))
             else:
-                self.area.setForce(body, (x,y,z))
-
-            # true when idle and grounded
-            if (y==0) and (z==0):
-                if not body.isFalling:
-                    self.hero.avatar.play("stand")
-
-            self.old_player_vector = tuple(self.player_vector)
-            self.old_falling = body.isFalling
+                self.area.setForce(hero_body, (x,y,z))
 
 
     # for platformers
@@ -277,16 +273,22 @@ class LevelState(GameState):
 
         for cls, cmd, arg in cmdlist:
             if arg == BUTTONUP:
+                self.input_changed = True
                 if cmd == P1_DOWN:
                     if playing == "crouch":
                         self.hero.avatar.play("uncrouch", loop=0)
 
                 elif cmd == P1_LEFT: y = 0
                 elif cmd == P1_RIGHT: y = 0
-                elif cmd == P1_ACTION1: self.handleActionKey(False)
+                elif cmd == P1_ACTION3 and self.hero.held:
+                    self.hero.parent.unjoin(hero_body, self.hero.held)
+                    msg = self.text['ungrab'].format(self.hero.held.parent.name)
+                    self.hero.parent.emitText(msg, thing=self.hero)
+                    self.hero.held = None
 
             # these actions will repeat as button is held down
             elif arg == BUTTONDOWN or arg == BUTTONHELD:
+                self.input_changed = True
                 if cmd == P1_UP:
                     self.elevatorUp()
 
@@ -298,32 +300,53 @@ class LevelState(GameState):
 
                 if cmd == P1_LEFT:
                     y = -1
-                    self.hero.avatar.play("run")
                     self.hero.avatar.flip = 1
 
                 elif cmd == P1_RIGHT:
                     y = 1
-                    self.hero.avatar.play("run")
                     self.hero.avatar.flip = 0
 
                 if cmd == P1_ACTION2:
-                    if not self.hero.held:
+                    if (not self.hero.held) and (not playing == "crouch"):
                         z = -self.hero_jump
 
             # these actions will not repeat if button is held
             if arg == BUTTONDOWN:
-                if cmd == P1_ACTION1: self.handleActionKey(True)
+                self.input_changed = True
+                if cmd == P1_ACTION1:
+                    other = getNearby(self.hero, 4)
+                    if other:
+                        if hasattr(other, "use"):
+                            other.use(self.hero)
 
-        # don't rotate the player if he's grabbing something
-        if self.hero.held:
-            self.area.setOrientation(self.hero, atan2(y, z))
+                if cmd == P1_ACTION3:
+                    other = getNearby(self.hero, 4)
+                    if other:
+                        if other.pushable and not self.hero.held:
+                            body0 = self.hero.parent.getBody(self.hero)
+                            body1 = self.hero.parent.getBody(other)
+                            self.hero.parent.join(body0, body1)
+                            self.hero.held = body1
+                            msg = self.text['grab'].format(other.name) 
+                            self.hero.parent.emitText(msg, thing=self.hero)
+
+
+        if (not x == 0) or (not y == 0) or (not z == 0):
+            if self.hero.held:
+                #self.area.setOrientation(self.hero, atan2(y, z))
+                y = y / 4.0
+
+            if abs(y) < 1.0:
+                self.hero.avatar.play("walk")
+            else:
+                self.hero.avatar.play("run")
 
         self.player_vector = x, y*self.hero.move_speed, z
 
 
     def handleActionKey(self, pressed):
         if pressed:
-            other = getNearby(self.hero, 2)
+            other = getNearby(self.hero, 4)
             if other:
                 if hasattr(other, "use"):
                     other.use(self.hero)

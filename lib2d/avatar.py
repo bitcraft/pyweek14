@@ -35,6 +35,7 @@ import time
 pi2 = pi * 2
 
 
+
 class Avatar(GameObject):
     """
     Avatar is a sprite-like class that supports multiple animations, animation
@@ -200,13 +201,14 @@ class Avatar(GameObject):
         pauses the current animation and runs the callback if needed.
         """
 
-        self.doCallback()
         self.reset()
+        self.doCallback()
 
 
     def doCallback(self):
         if self.callback:
             self.callback[0](*self.callback[1])
+
 
     def reset(self):
         """
@@ -296,7 +298,7 @@ class Avatar(GameObject):
 
         try:
             return self.animations[name]
-        except KeyError:
+        except:
             raise
 
 
@@ -371,7 +373,8 @@ class Animation(GameObject):
         if not self.images == [] and not force:
             return
 
-        image = res.loadImage(self.filename, 0, 1)
+        image = res.loadImage(self.filename, 0, 0, 1)
+
         iw, ih = image.get_size()
         tw = iw / self.real_frames
         th = ih / self.directions
@@ -458,16 +461,17 @@ class StaticAnimation(Animation):
         TODO: this is super hackish.
         """
 
-        image = res.loadImage(self.filename, 0, 1)
+        image = res.loadImage(self.filename, 0, 0, 1)
       
         if self.tile:
             x, y = self.tile
             x *= self.size[0]
             y *= self.size[1]
+            ck = image.get_colorkey()
             self.image = pygame.Surface(self.size)
             self.image.blit(image,(0,0),area=(x,y, self.size[0], self.size[1]))
-            self.image.set_colorkey(self.image.get_at((0,0)))
- 
+            image.set_colorkey(ck, pygame.RELACCEL) 
+
         else:
             self.image = image
 
