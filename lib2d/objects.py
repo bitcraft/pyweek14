@@ -1,6 +1,9 @@
 import res
+import pygame, types, os
 
 
+
+unsupported = [pygame.Surface, types.MethodType]
 
 def loadObject(name):
     """
@@ -9,7 +12,7 @@ def loadObject(name):
 
     import cPickle as pickle
 
-    with open(name + "-data.txt") as fh:
+    with open(name + "-data.save") as fh:
         node = pickle.load(fh)
 
     return node
@@ -273,6 +276,14 @@ class GameObject(object):
         """
 
         import cPickle as pickle
+        import StringIO
+
+        def testRun():
+            for child in self.getChildren():
+                for k, v in child.__dict__.items():
+                    if type(v) in unsupported:
+                        print "Object {} contains unpickleable attribute \"{}\" {} ({})".format(child, k, type(v), v)
+                        raise ValueError
 
         # generate unique ID's for all the objects (if not already assigned)
         i = 0
@@ -285,13 +296,17 @@ class GameObject(object):
             child.setGUID(i)
             used.add(i)
 
+        testRun()
+
         toc = {}
         def handleWrite(obj, pickler):
             toc[obj.guid] = fh.tell()
 
-        with open(name + "-data.txt", "w") as fh:
+        with open(name + "-data.temp", "w") as fh:
             pickler = pickle.Pickler(fh, -1)
             self.serialize(pickler, handleWrite)
+
+        os.rename(name + "-data.temp", name + "-data.save")
 
         #with open(name + "-index.txt", "w") as fh:
         #    pickler = pickle.Pickler(fh, -1)
@@ -302,6 +317,23 @@ class AvatarObject(GameObject):
     def __init__(self):
         GameObject.__init__(self)
         self._avatar = None
+        self.inventory = []
+
+
+    # hack
+    def addThing(self, thing):
+        self.inventory.append(thing)
+        self.add(thing)
+
+
+    # also a hack
+    def removeThing(self, thing):
+        self.inventory.remove(thing)
+        self.remove(thing)
+
+
+    def fallDamage(self, dmg):
+        pass
 
 
     def add(self, other):
@@ -335,4 +367,9 @@ class AvatarObject(GameObject):
 
     
     def stop(self):
+        pass
+
+
+class InteractiveObject(AvatarObject):
+    def use(self, user=None):
         pass

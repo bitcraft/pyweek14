@@ -9,7 +9,8 @@ from lib.misc import *
 from lib2d import res
 
 from collections import defaultdict
-import os, random, types
+import os
+
 
 
 mootFlavour = \
@@ -19,14 +20,6 @@ Nothing.
 You lean to to examine it closely, then yawn.  Nothing happens.
 I know right, I'm just as bored as you are.  Nothing happens.""".split("\n")
 
-termMootFlavour = \
-"""You press a few blinking buttons, but nothing seems to happen.
-Click, click, click.  Nothing.
-Is this thing even working?
-Hitting keys at random has caused nothing to happen.
-As you watch the terminal, you wish you were somewhere else.""".split("\n")
-
-print termMootFlavour
 
 def build():
 
@@ -82,20 +75,6 @@ def build():
     npc.setGUID(513)
     npc.size = (2, 14, 30)
     npc.avatar.axis = (-9,-2)
-    uni.add(npc)
-
-
-    # desk
-    avatar = Avatar()
-    ani = StaticAnimation("desk.png", "idle")
-    avatar.add(ani)
-    npc = InteractiveObject()
-    npc.setName("Desk")
-    npc.setAvatar(avatar)
-    npc.setGUID(514)
-    npc.size = (4, 42, 25)
-    npc.avatar.axis = (-2,-6)
-    npc.pushable = True
     uni.add(npc)
 
 
@@ -156,48 +135,56 @@ def build():
     uni.add(npc)
 
 
-    # terminals
-    def deadterm(self, user):
-        area = user.parent
-        area.emitText(random.choice(termMootFlavour), thing=self)
-        self.animate()
-
-    def wakebots(self, user):
-        area = user.parent
-        if self.activated:
-            area.emitText("Your face is still throbbing from when you last hit the terminal with it.", thing=self)
-
-        else:
-            self.activated = True
-            bots = [ i for i in self.parent.getChildren() if isinstance(i, LaserRobot) ]
-            for bot in bots:
-                bot.activate()
-            area.emitText("Surprisingly, hitting your face against the keypad seemed to do something.", thing=self)
-
-        self.animate()
-
+    # terminals 
     avatar = Avatar()
     ani = Animation("terminal-idle.png", "idle", 8, 1, 300)
     avatar.add(ani)
     ani = Animation("terminal-glow.png", "glow", 8, 1, 80)
     avatar.add(ani)
-    npc = Terminal()
+
+    npc = DeadTerminal()
     npc.setName("Terminal")
     npc.setGUID(1281)
     npc.setAvatar(avatar)
     npc.size = (4,16,16)
-    npc.use = types.MethodType(deadterm, npc)
     uni.add(npc)
 
-    npc = npc.copy()
-    npc.use = types.MethodType(deadterm, npc)
+    npc = DeadTerminal()
+    npc.setName("Terminal")
+    npc.setAvatar(avatar.copy())
+    npc.size = (4,16,16)
     npc.setGUID(1282)
     uni.add(npc)
 
-    npc = npc.copy()
-    npc.use = types.MethodType(wakebots, npc)
+    npc = WakeTerminal()
+    npc.setName("Terminal")
+    npc.setAvatar(avatar.copy())
+    npc.size = (4,16,16)
     npc.setGUID(1283)
     uni.add(npc)
+
+
+    # keys
+    avatar = Avatar()
+    ani = StaticAnimation("red-key.png", "idle")
+    avatar.add(ani)
+    red_key = Key()
+    red_key.setAvatar(avatar)
+    red_key.setName("Red Key")
+
+    avatar = Avatar()
+    ani = StaticAnimation("blue-key.png", "idle")
+    avatar.add(ani)
+    blue_key = Key()
+    blue_key.setAvatar(avatar)
+    blue_key.setName("Blue Key")
+
+    avatar = Avatar()
+    ani = StaticAnimation("green-key.png", "idle")
+    avatar.add(ani)
+    green_key = Key()
+    green_key.setAvatar(avatar)
+    green_key.setName("Green Key")
 
 
     # keyed doors
@@ -216,6 +203,21 @@ def build():
     npc.setAvatar(avatar)
     npc.size = (10,32,48)
     #npc.forceOff()
+    uni.add(npc)
+
+
+    # desk
+    avatar = Avatar()
+    ani = StaticAnimation("desk.png", "idle")
+    avatar.add(ani)
+    npc = InventoryObject()
+    npc.setName("Desk")
+    npc.setAvatar(avatar)
+    npc.setGUID(514)
+    npc.size = (4, 42, 25)
+    npc.avatar.axis = (-2,-6)
+    npc.pushable = True
+    npc.addThing(red_key)
     uni.add(npc)
 
 
@@ -245,15 +247,6 @@ def build():
     level.setGUID(5001)
 
 
-    #haccckk
-    for lift in [ i for i in uni.getChildren() if isinstance(i, Lift) ]:
-        body = lift.parent.getBody(lift)
-        body.bbox = body.bbox.move(0,0,1)
 
-    pushback = ['Desk']
-
-    for i in [ i for i in uni.getChildren() if i.name in pushback ]:
-        body = lift.parent.getBody(i)
-        body.bbox = body.bbox.move(-4,0,0)
 
     return uni

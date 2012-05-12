@@ -21,7 +21,7 @@ class Laser(GameObject):
 
 
 class LaserRobot(AvatarObject):
-    sounds = ["ex0.wav", "warn.wav", "whiz0.wav"]
+    sounds = ["ex0.wav", "warn.wav", "select1.wav", "powerdown.wav"]
 
     def __init__(self):
         AvatarObject.__init__(self)
@@ -30,14 +30,21 @@ class LaserRobot(AvatarObject):
         self.warned = False
         self.pushable = True
         self.activated = False
+        self.dying = False
 
 
     def activate(self):
         self.activated = True
-        self.parent.emitSound("whiz0.wav", thing=self)
+        self.parent.emitSound("select1.wav", thing=self)
 
 
     def update(self, time):
+        #if self.isFalling and self.isAlive and not self.dying:
+        #    self.die()
+
+        #if not self.isAlive:
+        #    self.destroy()
+
         if not self.activated: return
 
         self.time += time
@@ -50,33 +57,31 @@ class LaserRobot(AvatarObject):
                 self.warned = True
                 self.warn()
 
-        if self.isFalling and self.isAlive:
-            self.isAlive = False
-            self.die()
+
+    def die2():
+        body0 = self.parent.getBody(self)
+        body1 = self.parent.getBody(self.bolt)
+        self.parent.unjoin(body0, body1)
+        self.isAlive = False
 
 
     def die(self):
-        def destroy():
-            body0 = self.parent.getBody(self)
-            body1 = self.parent.getBody(bolt)
-            self.parent.unjoin(body0, body1)
-            bolt.destroy()
-            #self.destroy()
-
-        bolt = AvatarObject()
-        bolt.name = "bolt"
+        self.bolt = AvatarObject()
+        self.bolt.name = "self.bolt"
         avatar = Avatar()
         ani = Animation("electrify.png", "electrify", 2, 1, 50)
         avatar.add(ani)
-        avatar.play("electrify", loop=3, callback=destroy)
-        bolt.setAvatar(avatar)
-        self.parent.add(bolt)
-        x, y, z, d, w, h = self.parent.getPosition(self)
-        self.parent.setPosition(bolt, (x, y, z, 10, w, h))
+        avatar.play("electrify", loop=6, callback=self.die2)
+        self.bolt.setAvatar(avatar)
+        self.parent.add(self.bolt)
         body0 = self.parent.getBody(self)
-        body1 = self.parent.getBody(bolt)
+        body1 = self.parent.getBody(self.bolt)
+        x, y, z, d, w, h = body0.bbox
+        self.parent.setBBox(self.bolt, (x, y, z, 1, w, h))
         self.parent.join(body0, body1)
         ani.load()
+        self.dying = True
+        self.parent.emitSound("powerdown.wav", thing=self)
 
 
     def warn(self):

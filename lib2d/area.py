@@ -508,7 +508,7 @@ class Area(AbstractArea):
     # 2d physics only
     def updatePhysics(self, body, time):
         """
-        basic gravity
+        basic physics
         """
       
         time = time / 100
@@ -527,10 +527,15 @@ class Area(AbstractArea):
             if falling:
                 body.isFalling = True
                 self._grounded[body] = False
-            elif not falling:
+            else:
+                if body.isFalling:
+                    body.parent.fallDamage(body.vel.y)
                 body.isFalling = False
                 self._grounded[body] = True
-                body.acc.y = 0
+                if int(body.vel.y) >= 1:
+                    body.acc.y = -body.acc.y * .2
+                else:
+                    body.acc.y = 0
         elif z < 0:
             flying = self.movePosition(body, (0, 0, z))
             if flying:

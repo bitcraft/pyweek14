@@ -4,6 +4,8 @@ from lib2d.bbox import BBox
 from lib2d import res
 from pygame import Rect
 
+from lib.misc import *
+
 
 def fromTMX(parent, mapname):
     """Create a new area from a tmx map
@@ -62,8 +64,9 @@ def fromTMX(parent, mapname):
             msg = "control gid: {} is used in more than one locaton"
             raise Exception, msg.format(gid)
 
+        x, y, z = toWorld(data, pos.pop())
         body = area._parent.getChildByGUID(int(prop['guid']))
-        area.add(body, toWorld(data, pos.pop()))
+        area.add(body, (0, y, z))
         area.setOrientation(body, "south")
 
 
@@ -86,7 +89,8 @@ def fromTMX(parent, mapname):
             if copy:
                 body = body.copy()
 
-            area.add(body, toWorld(data, pos))
+            x, y, z = toWorld(data, pos)
+            area.add(body, (0, y, z))
             area.setOrientation(body, "south")
             copy = True 
 
@@ -100,8 +104,9 @@ def fromTMX(parent, mapname):
             msg = "control gid: {} is used in more than one locaton"
             raise Exception, msg.format(gid)
 
+        x, y, z = toWorld(data, pos.pop())
         body = area._parent.getChildByGUID(int(prop['guid']))
-        area.add(body, toWorld(data, pos.pop()))
+        area.add(body, (0, y, z))
         area.setOrientation(body, "south")
 
 
@@ -161,6 +166,19 @@ def fromTMX(parent, mapname):
         area.setOrientation(body, "south")
 
 
+    #haccckk
+    for lift in [ i for i in area.getChildren() if isinstance(i, Lift) ]:
+        body = lift.parent.getBody(lift)
+        body.bbox = body.bbox.move(0,0,1)
+
+    pushback = ['Desk', 'Callbutton', 'Terminal']
+
+    for i in [ i for i in area.getChildren() if i.name in pushback ]:
+        print "pushing back", i
+        body = lift.parent.getBody(i)
+        print body.bbox
+        body.bbox = body.bbox.move(-16,0,0)
+        print body.bbox
 
     # handle the exits
     # here only the exits and positions are saved

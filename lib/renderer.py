@@ -5,8 +5,8 @@ from pygame import Rect, draw
 import weakref
 
 
-def screenSorter(x):
-    return x[1][1]
+def screenSorter(a):
+    return a[-1].x
 
 
 class LevelCamera(object):
@@ -36,8 +36,7 @@ class LevelCamera(object):
  
 
     def refreshAvatarObjects(self):
-        return [ i for i in self.area.getChildren()
-                 if hasattr(i, "avatar") ]
+        return [ i for i in self.area.bodies.keys() ]
         
 
     # HACK
@@ -117,16 +116,19 @@ class LevelCamera(object):
             self.blank = False
             self.maprender.blank = True
 
+        # quadtree collision testing would be good here
         for a in avatarobjects:
-            x, y, z, d, w, h, = self.area.getBBox(a)
+            bbox = self.area.getBBox(a)
+            x, y, z, d, w, h = bbox
             x, y = self.toSurface((x, y, z))
             xx, yy = a.avatar.axis
             x += xx
             y += yy + h
             if self.extent.colliderect((x, y, w, h)):
-                onScreen.append((a, Rect(self.toScreen((x, y)), (w, h))))
+                onScreen.append((a.avatar.image, Rect(self.toScreen((x, y)), (w, h)), 1, a, bbox))
 
-        onScreen = [ (a.avatar.image, r, 1, a) for a, r in onScreen ]
+        # should not be sorted every frame
+        onScreen.sort(key=screenSorter)
 
         return self.maprender.draw(surface, onScreen)
 

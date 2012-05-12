@@ -23,14 +23,19 @@ debug = 1
 
 movt_fix = 1/sqrt(2)
 
+
 def getNearby(thing, d):
     p = thing.parent
     body = p.getBody(thing)
-    bbox = body.bbox.inflate(d,d,d)
-    l = [ (i.parent, i) for i in p.testCollideObjects(bbox) ]
-    l.remove((thing, body))
+    bbox = body.bbox.inflate(64,d,d)
+    x1, y1, z1 = body.bbox.center
+    nearby = []
+    for other in p.testCollideObjects(bbox, skip=[body]): 
+        x2, y2, z2 = other.bbox.center
+        dist = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
+        nearby.append((d, (other.parent, other)))
 
-    return l
+    return [ i[1] for i in sorted(nearby) ]
 
 
 class SoundManager(object):
@@ -191,10 +196,14 @@ class LevelState(GameState):
 
         x, y, z = self.player_vector
         # true when idle and grounded
-        if (y==0) and (z==0) and not hero_body.isFalling and \
-            not self.hero.avatar.isPlaying("crouch") and \
-            not self.hero.avatar.isPlaying("uncrouch"):
+        if self.hero.isAlive:
+            if (y==0) and (z==0) and not hero_body.isFalling and \
+                not self.hero.avatar.isPlaying("crouch") and \
+                not self.hero.avatar.isPlaying("uncrouch"):
                 self.hero.avatar.play("stand")
+        elif not self.hero.avatar.isPlaying("die"):
+            self.hero.avatar.play("die")
+
 
         if self.area.flash:
             x1, y1, z1 = self.area.flash
@@ -272,10 +281,13 @@ class LevelState(GameState):
 
     # for platformers
     def handle_commandlist(self, cmdlist):
+        if self.hero.isAlive:
+            self.handleMovementKeys(cmdlist)
+
+
+    def handleMovementKeys(self, cmdlist):
         x = 0; y = 0; z = 0
-
         playing = self.hero.avatar.curAnimation.name
-
         for cls, cmd, arg in cmdlist:
             if arg == BUTTONUP:
                 self.input_changed = True

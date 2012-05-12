@@ -28,7 +28,7 @@ class TitleScreen(GameState):
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
                 ('Continue', self.continue_game),
-                ('Introduction', self.show_intro),
+                ('Reload', self.load_game),
                 ('Save and Quit', self.savequit_game),
                 ('Quit', self.quit_game)],
                 font="visitor1.ttf", font_size=20)
@@ -36,7 +36,7 @@ class TitleScreen(GameState):
             self.menu = cMenu(((32,20), sd.get_size()),
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
-                ('Continue', self.continue_game),
+                ('Continue', self.load_game),
                 ('Introduction', self.show_intro),
                 ('Quit', self.quit_game)],
                 font="visitor1.ttf", font_size=20)
@@ -66,14 +66,18 @@ class TitleScreen(GameState):
         sd.start(LevelState(level))
 
 
-    def continue_game(self):
-        if self.game == None:
-            try:
-                path = os.path.join("resources", "saves", "save")
-                self.game = loadObject(path)
-            except IOError:
-                return self.new_game()
+    def load_game(self):
+        try:
+            path = os.path.join("resources", "saves", "save")
+            self.game = loadObject(path)
+        except IOError:
+            return self.new_game()
 
+        level = self.game.getChildByGUID(5001)
+        sd.start(LevelState(level))
+
+
+    def continue_game(self):
         level = self.game.getChildByGUID(5001)
         sd.start(LevelState(level))
 
@@ -86,7 +90,7 @@ class TitleScreen(GameState):
     def savequit_game(self):
         if self.game:
             path = os.path.join("resources", "saves", "save")
-            [ i.unload() for i in self.game.getChildren() ]
+            [ i.unload() for i in self.game.getAllChildren() ]
             self.game.save(path)
         self.quit_game()
 

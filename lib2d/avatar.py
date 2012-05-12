@@ -65,24 +65,31 @@ class Avatar(GameObject):
     def _updateCache(self):
         angle = self.getOrientation()
 
-        if self.curAnimation == None:
-            self.play(self.default)
+        try:
+            if self.curAnimation == None:
+                self.play(self.default)
 
-        if not angle == self._prevAngle:
-            self.curImage = self.curAnimation.getImage(self.curFrame, angle)
-            self._rect = self.curImage.get_rect().move(self.axis)
-            if self.flip: self.curImage = flip(self.curImage, 1, 0)
+            if not angle == self._prevAngle:
+                self.curImage = self.curAnimation.getImage(self.curFrame, angle)
+                self._rect = self.curImage.get_rect().move(self.axis)
+                if self.flip: self.curImage = flip(self.curImage, 1, 0)
 
-        elif not self.curFrame == self._prevFrame:
-            self.curImage = self.curAnimation.getImage(self.curFrame, angle) 
-            self._rect = self.curImage.get_rect().move(self.axis)
-            if self.flip: self.curImage = flip(self.curImage, 1, 0)
+            elif not self.curFrame == self._prevFrame:
+                self.curImage = self.curAnimation.getImage(self.curFrame, angle) 
+                self._rect = self.curImage.get_rect().move(self.axis)
+                if self.flip: self.curImage = flip(self.curImage, 1, 0)
 
-        elif self.curImage == None:
-            self.curImage = self.curAnimation.getImage(self.curFrame, angle) 
-            self._rect = self.curImage.get_rect().move(self.axis)
-            if self.flip: self.curImage = flip(self.curImage, 1, 0)
+            elif self.curImage == None:
+                self.curImage = self.curAnimation.getImage(self.curFrame, angle) 
+                self._rect = self.curImage.get_rect().move(self.axis)
+                if self.flip: self.curImage = flip(self.curImage, 1, 0)
 
+        except:
+            import gc
+            gc.collect()
+            print gc.get_referrers(self)
+            print gc.get_referents(self)
+            raise
 
     def get_rect(self):
         self._updateCache()
@@ -182,7 +189,7 @@ class Avatar(GameObject):
 
             # loop, but count the loops
             elif self.loop > 0:
-                if self.looped > self.loop:
+                if self.looped >= self.loop:
                     self.stop()
                 else:
                     self.setFrame(self.loop_frame)
@@ -225,9 +232,9 @@ class Avatar(GameObject):
         set the frame of the animation
         frame should be 0-indexed number of frame to show
         """
-         
         self._prevFrame = frame
         self.curFrame = frame
+        
 
 
     def isPlaying(self, name):
@@ -425,6 +432,10 @@ class Animation(GameObject):
         if self.order:
             number = self.order[number]
 
+        # this is a work around for a bug
+        if number >= self.frames:
+            number = 0
+
         try:
             return self.images[number+d*self.real_frames]
         except IndexError:
@@ -453,6 +464,10 @@ class StaticAnimation(Animation):
 
     def returnNew(self):
         return self
+
+
+    def unload(self):
+        self.image = None
 
 
     def load(self):
