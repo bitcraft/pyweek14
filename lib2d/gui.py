@@ -76,6 +76,7 @@ class GraphicBox(object):
 # draw some text into an area of a surface
 # automatically wraps words
 # returns any text that didn't get blitted
+# passing None as the surface is ok
 def drawText(surface, text, color, rect, font=None, aa=False, bkg=None):
     rect = Rect(rect)
     y = rect.top
@@ -104,7 +105,6 @@ def drawText(surface, text, color, rect, font=None, aa=False, bkg=None):
             break
 
         # determine maximum width of line
-        
         while font.size(text[:i])[0] < rect.width and i < len(text):
             if text[i] == "\n":
                 text = text[:i] + text[i+1:]
@@ -115,14 +115,16 @@ def drawText(surface, text, color, rect, font=None, aa=False, bkg=None):
             if i < len(text):
                 i = text.rfind(" ", 0, i) + 1
 
-        # render the line and blit it to the surface
-        if bkg:
-            image = font.render(text[:i], 1, color, bkg)
-            image.set_colorkey(bkg)
-        else:
-            image = font.render(text[:i], aa, color)
+        if surface:
+            # render the line and blit it to the surface
+            if bkg:
+                image = font.render(text[:i], 1, color, bkg)
+                image.set_colorkey(bkg)
+            else:
+                image = font.render(text[:i], aa, color)
 
-        surface.blit(image, (rect.left, y))
+            surface.blit(image, (rect.left, y))
+
         y += fontHeight + lineSpacing
 
         # remove the text we just blitted

@@ -57,6 +57,9 @@ class LaserRobot(AvatarObject):
 
     def die(self):
         def destroy():
+            body0 = self.parent.getBody(self)
+            body1 = self.parent.getBody(bolt)
+            self.parent.unjoin(body0, body1)
             bolt.destroy()
             #self.destroy()
 
@@ -68,7 +71,11 @@ class LaserRobot(AvatarObject):
         avatar.play("electrify", loop=3, callback=destroy)
         bolt.setAvatar(avatar)
         self.parent.add(bolt)
-        self.parent.setPosition(bolt, self.parent.getPosition(self))
+        x, y, z, d, w, h = self.parent.getPosition(self)
+        self.parent.setPosition(bolt, (x, y, z, 10, w, h))
+        body0 = self.parent.getBody(self)
+        body1 = self.parent.getBody(bolt)
+        self.parent.join(body0, body1)
         ani.load()
 
 

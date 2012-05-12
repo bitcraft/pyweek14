@@ -24,16 +24,13 @@ debug = 1
 movt_fix = 1/sqrt(2)
 
 def getNearby(thing, d):
-    body = thing.parent.getBody(thing)
+    p = thing.parent
+    body = p.getBody(thing)
     bbox = body.bbox.inflate(d,d,d)
+    l = [ (i.parent, i) for i in p.testCollideObjects(bbox) ]
+    l.remove((thing, body))
 
-    l = thing.parent.testCollideObjects(bbox)
-    l.remove(body)
-
-    if l:
-        return l.pop().parent
-    else:
-        return None
+    return l
 
 
 class SoundManager(object):
@@ -227,13 +224,21 @@ class LevelState(GameState):
 
         else:
             if self.updateText:
+                lines = 5
                 self.updateText = False
                 surface.fill(self.background, self.msgBorder)
                 self.border.draw(surface, self.msgBorder)
-                log = "\n".join(self.area.messages[-5:])
+                log = "\n".join(self.area.messages[-lines:])
                 rect = self.msgBorder.inflate(-16,-12).move(0,1)
-                gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
+                extra = gui.drawText(None, log, (128,128,128), rect, self.msgFont)
+                while extra and lines > 1:
+                    lines -= 1
+                    log = "\n".join(self.area.messages[-lines:])
+                    extra = gui.drawText(None, log, (128,128,128), rect, self.msgFont)
+
+                extra = gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
                 gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
+
                 dirty.append(self.msgBorder)
 
             self.camera.center(self.area.getPosition(self.hero))
@@ -260,7 +265,7 @@ class LevelState(GameState):
 
             # allows you to move in air
             if hero_body.isFalling:
-                self.area.setForce(hero_body, (x/3,y/3, hero_body.acc.y))
+                self.area.setForce(hero_body, (x/3.0,y/3.0, hero_body.acc.y))
             else:
                 self.area.setForce(hero_body, (x,y,z))
 
@@ -314,27 +319,23 @@ class LevelState(GameState):
             if arg == BUTTONDOWN:
                 self.input_changed = True
                 if cmd == P1_ACTION1:
-                    other = getNearby(self.hero, 4)
-                    if other:
-                        if hasattr(other, "use"):
-                            other.use(self.hero)
+                    for thing, body in getNearby(self.hero, 4):
+                        if hasattr(thing, "use"):
+                            thing.use(self.hero)
 
                 if cmd == P1_ACTION3:
-                    other = getNearby(self.hero, 4)
-                    if other:
-                        if other.pushable and not self.hero.held:
-                            body0 = self.hero.parent.getBody(self.hero)
-                            body1 = self.hero.parent.getBody(other)
-                            self.hero.parent.join(body0, body1)
-                            self.hero.held = body1
-                            msg = self.text['grab'].format(other.name) 
+                    for thing, body in getNearby(self.hero, 4):
+                        if thing.pushable and not self.hero.held:
+                            self.hero.parent.join(hero_body, body)
+                            self.hero.held = body
+                            msg = self.text['grab'].format(thing.name) 
                             self.hero.parent.emitText(msg, thing=self.hero)
 
 
         if (not x == 0) or (not y == 0) or (not z == 0):
             if self.hero.held:
                 #self.area.setOrientation(self.hero, atan2(y, z))
-                y = y / 4.0
+                y = y / 3.0
 
             if abs(y) < 1.0:
                 self.hero.avatar.play("walk")
@@ -342,28 +343,6 @@ class LevelState(GameState):
                 self.hero.avatar.play("run")
 
         self.player_vector = x, y*self.hero.move_speed, z
-
-
-    def handleActionKey(self, pressed):
-        if pressed:
-            other = getNearby(self.hero, 4)
-            if other:
-                if hasattr(other, "use"):
-                    other.use(self.hero)
-
-                elif other.pushable and not self.hero.held:
-                    body0 = self.hero.parent.getBody(self.hero)
-                    body1 = self.hero.parent.getBody(other)
-                    self.hero.parent.join(body0, body1)
-                    self.hero.held = body1
-                    msg = self.text['grab'].format(other.name) 
-                    self.hero.parent.emitText(msg, thing=self.hero)
-        else:
-            if self.hero.held:
-                self.hero.parent.unjoin(hero_body, self.hero.held)
-                msg = self.text['ungrab'].format(self.hero.held.parent.name)
-                self.hero.parent.emitText(msg, thing=self.hero)
-                self.hero.held = None
 
 
     def findLift(self, offset):

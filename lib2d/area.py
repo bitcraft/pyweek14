@@ -493,11 +493,11 @@ class Area(AbstractArea):
 
         [ sound.update(time) for sound in self.sounds ]
 
-        # awkward looping allowing objects to be added/removed during update
         for thing, body in self.bodies.items():
             self.updatePhysics(body, time)
             thing.update(time)
 
+        # awkward looping allowing objects to be added/removed during update
         self.inUpdate = False
         [ self.add(thing) for thing in self._addQueue ] 
         self._addQueue = []
