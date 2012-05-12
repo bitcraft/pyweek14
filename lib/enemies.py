@@ -1,10 +1,26 @@
 from lib2d.objects import AvatarObject, GameObject
 from lib2d.avatar import Animation, Avatar
 from lib2d import res
-from random import randint
+from random import randint, choice
 
 import gc
 
+
+
+laserFlavour = """You've been lasered.  Maybe you can duck it?
+That's one heck of a hair cut!
+My eyes!!!
+Duck and cover!
+Pew! Pew! Pew!
+If only you could avoid the laser...""".split("\n")
+
+
+bossFlavour = """You choke on the bullets in the back of your throat.
+As you die, you take "be shot" off your mental bucket list.
+Bullets tear through your flesh.
+Hot bullets tear through your entire body.
+Should have brought the bullet proof vest.
+You feel one thousand bullets tear through your body.""".split("\n")
 
 
 class Laser(GameObject):
@@ -17,7 +33,7 @@ class Laser(GameObject):
         self.time += time
         if self.time >= self.ttl:
             self.destroy()
-        self.parent.flash = self.parent.getBody(self).bbox.center
+        self.parent.flash(self.parent.getBody(self).bbox.center)
 
 
 class LaserRobot(AvatarObject):
@@ -25,7 +41,7 @@ class LaserRobot(AvatarObject):
 
     def __init__(self):
         AvatarObject.__init__(self)
-        self.rate = 3000
+        self.rate = 4000
         self.time = 0
         self.warned = False
         self.pushable = True
@@ -91,11 +107,82 @@ class LaserRobot(AvatarObject):
 
 
     def shoot(self):
-        self.avatar.play("shoot", loop=0)
-        laser = Laser()
-        self.parent.add(laser)
+        boss = [ i for i in self.parent.getChildren() if isinstance(i, Boss) ]
         hero = self.parent.getChildByGUID(1)
-        if not hero.avatar.isPlaying("crouch"):
-            hero.die()
-        
+        bbox = self.parent.getBody(self).bbox.inflate(0,128,0)
+
+        if boss:
+            boss = boss.pop()
+            if bbox.collidebbox(self.parent.getBody(boss).bbox):
+                boss.hit()
+
+        laser = Laser()
+        self.parent.add(laser, bbox.center)
+        if bbox.collidebbox(self.parent.getBody(hero).bbox):
+            if not hero.avatar.isPlaying("crouch") and hero.isAlive:
+                self.parent.emitText(choice(laserFlavour), thing=self)
+                hero.die()
+
         self.parent.emitSound("ex0.wav", thing=self)
+        self.avatar.play("shoot", loop=0)
+
+
+class Boss(AvatarObject):
+    sounds = ["crash1.wav"]
+    
+
+    def __init__(self):
+        AvatarObject.__init__(self)
+        self.rate = 1000
+        self.time = 0
+        self.pushable = False
+        self.dying = False
+        self.dead = False
+
+
+    def update(self, time):
+        if self.isAlive or self.dying:
+            self.time += time
+
+        if self.isAlive:
+            if self.time >= self.rate:
+                self.time -= self.rate
+                self.shoot()
+
+        elif self.dying and not self.dead:
+            if self.time >= 140:
+                self.die()
+                self.dead = True
+
+
+    def die2(self):
+        self.avatar.play("dead") 
+
+
+    def die(self):
+        self.avatar.play("dying", loop=0, callback=self.die2)
+
+
+    def hit(self):
+        self.parent.emitSound("crash1.wav", thing=self)
+        self.parent.emitText("Blinded, the boss keels over, muttering something, and dies", thing=self)
+        self.parent.emitText("You win!", thing=self)
+        self.isAlive = False
+        self.dying = True
+        self.time = 0
+
+
+    def shoot(self):
+        robots = [ self.parent.getBody(i).bbox for i in self.parent.getChildren() if isinstance(i, LaserRobot) ]
+        hero = self.parent.getChildByGUID(1)
+        bbox = self.parent.getBody(self).bbox.inflate(0,512,0)
+        if bbox.collidebbox(self.parent.getBody(hero).bbox):
+            if any([ bbox.collidebbox(i) for i in robots ]):
+                self.parent.emitText("Bullets smash into the robot, but are bounced off and scattered all over the room.", thing=self)
+
+            else:
+                self.parent.emitText(choice(bossFlavour), thing=self)
+                hero.die()
+
+        self.avatar.play("shoot", loop=0)
+        self.parent.emitSound("crash1.wav", thing=self)

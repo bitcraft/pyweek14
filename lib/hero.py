@@ -20,12 +20,12 @@ class Hero(AvatarObject):
 
 
     def die(self):
+        self.parent.emitText("You are dead.", thing=self)
         self.avatar.play("die", loop_frame=2)
         self.isAlive = False
 
 
     def fallDamage(self, dmg):
-        if dmg > 2:
+        if dmg > 1.5:
             self.parent.emitText(choice(fallFlavour), thing=self)
-            self.parent.emitText("You are dead.", thing=self)
             self.die()

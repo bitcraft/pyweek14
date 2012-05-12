@@ -36,7 +36,7 @@ class LevelCamera(object):
  
 
     def refreshAvatarObjects(self):
-        return [ i for i in self.area.bodies.keys() ]
+        return [ i for i in self.area.bodies.keys() if hasattr(i, "avatar")]
         
 
     # HACK

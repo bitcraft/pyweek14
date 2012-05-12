@@ -90,6 +90,10 @@ def fromTMX(parent, mapname):
                 body = body.copy()
 
             x, y, z = toWorld(data, pos)
+            # boss hack
+            if int(prop['guid']) == 516:
+                z -= 32
+
             area.add(body, (0, y, z))
             area.setOrientation(body, "south")
             copy = True 

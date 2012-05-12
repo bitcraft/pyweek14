@@ -173,9 +173,13 @@ class Area(AbstractArea):
         self.changedAvatars = True #hack
         self._grounded = {}
 
-        self.flash = False
+        self.flashes = []
         self.inUpdate = False
         self._removeQueue = []
+
+
+    def flash(self, position):
+        self.flashes.append(position)
 
 
     def load(self):

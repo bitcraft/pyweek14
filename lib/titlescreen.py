@@ -28,6 +28,7 @@ class TitleScreen(GameState):
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
                 ('Continue', self.continue_game),
+                ('Save', self.save_game),
                 ('Reload', self.load_game),
                 ('Save and Quit', self.savequit_game),
                 ('Quit', self.quit_game)],
@@ -66,6 +67,13 @@ class TitleScreen(GameState):
         sd.start(LevelState(level))
 
 
+    def save_game(self):
+        path = os.path.join("resources", "saves", "save")
+        [ i.unload() for i in self.game.getChildren() ]
+        self.game.save(path)
+        self.continue_game()
+
+
     def load_game(self):
         try:
             path = os.path.join("resources", "saves", "save")
@@ -90,7 +98,7 @@ class TitleScreen(GameState):
     def savequit_game(self):
         if self.game:
             path = os.path.join("resources", "saves", "save")
-            [ i.unload() for i in self.game.getAllChildren() ]
+            [ i.unload() for i in self.game.getChildren() ]
             self.game.save(path)
         self.quit_game()
 

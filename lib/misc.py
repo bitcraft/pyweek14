@@ -7,7 +7,10 @@ from lib.enemies import *
 
 
 text = {}
-text['take'] = "You take a {} from {}"
+text['take'] = "You take a {} from {}."
+text['useKey'] = "You use the {} on the door."
+text['locked'] = "This door requires {}."
+
 
 termMootFlavour = \
 """You press a few blinking buttons, but nothing seems to happen.
@@ -178,9 +181,10 @@ class Door(InteractiveObject):
     def use(self, user=None):
         if self.key and user:
             if self.key in [ i for i in user.getChildren() ]:
+                self.parent.emitText(text['useKey'].format(self.key.name), thing=self)
                 self.toggle(user)
             else:
-                return
+                self.parent.emitText(text['locked'].format(self.key.name), thing=self)
         else:
             self.toggle(user)
 

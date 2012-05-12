@@ -78,6 +78,26 @@ def build():
     uni.add(npc)
 
 
+
+    # boss
+    avatar = Avatar()
+    ani = StaticAnimation("boss-stand.png", "stand")
+    avatar.add(ani)
+    ani = Animation("boss-shoot.png", "shoot", 4, 1, 30)
+    avatar.add(ani)
+    ani = Animation("boss-dying.png", "dying", 4, 1, 100)
+    avatar.add(ani)
+    ani = StaticAnimation("boss-dead.png", "dead")
+    avatar.add(ani)
+    npc = Boss()
+    npc.setName("Boss")
+    npc.setAvatar(avatar)
+    npc.setGUID(516)
+    npc.size = (2, 32, 48)
+    npc.avatar.axis = (0,0)
+    uni.add(npc)
+
+
     # lifts
     avatar = Avatar()
     ani = StaticAnimation("lift-idle.png", "idle")
@@ -132,6 +152,10 @@ def build():
 
     npc = npc.copy()
     npc.setGUID(260)
+    uni.add(npc)
+
+    npc = npc.copy()
+    npc.setGUID(261)
     uni.add(npc)
 
 
@@ -202,7 +226,13 @@ def build():
     npc.setGUID(1537)
     npc.setAvatar(avatar)
     npc.size = (10,32,48)
+    npc.key = red_key
     #npc.forceOff()
+    uni.add(npc)
+
+    npc = npc.copy()
+    npc.setGUID(1538)
+    npc.key = blue_key
     uni.add(npc)
 
 
@@ -219,6 +249,21 @@ def build():
     npc.pushable = True
     npc.addThing(red_key)
     uni.add(npc)
+
+
+    avatar = Avatar()
+    ani = StaticAnimation("desk.png", "idle")
+    avatar.add(ani)
+    npc = InventoryObject()
+    npc.setName("Desk")
+    npc.setAvatar(avatar)
+    npc.setGUID(515)
+    npc.size = (4, 42, 25)
+    npc.avatar.axis = (-2,-6)
+    npc.pushable = True
+    npc.addThing(blue_key)
+    uni.add(npc)
+
 
 
     # load the avatar objects and set their world size based off the first frame

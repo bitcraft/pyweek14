@@ -204,17 +204,18 @@ class LevelState(GameState):
         elif not self.hero.avatar.isPlaying("die"):
             self.hero.avatar.play("die")
 
-
-        if self.area.flash:
-            x1, y1, z1 = self.area.flash
+        flash = False
+        for flash in self.area.flashes:
+            x1, y1, z1 = flash
             x2, y2, z2 = hero_body.bbox.center
-            self.area.flash = False
             d = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
-            if d < 600:
+            if d < 300:
                 self.blank = True
+
+        if flash:
+                self.area.flashes = []
                 surface.fill((255,randint(0,255),255))
                 dirty = [ surface.get_rect() ]
-
 
         elif self.blank:
             self.blank = False
@@ -413,7 +414,8 @@ def playSound(sender, **kwargs):
         vol = 1/d * 20 
     except ZeroDivisionError:
         vol = 1.0
-    SoundMan.play(kwargs['filename'], volume=vol)
+    if vol > .05:
+        SoundMan.play(kwargs['filename'], volume=vol)
 
 
 @receiver(bodyAbsMove)
