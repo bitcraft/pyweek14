@@ -172,6 +172,7 @@ class Area(AbstractArea):
         self.drawables = []      # HAAAAKCCCCKCK
         self.changedAvatars = True #hack
         self._grounded = {}
+        self.music_pos = 0
 
         self.flashes = []
         self.inUpdate = False

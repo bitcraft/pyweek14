@@ -164,6 +164,8 @@ class LevelState(GameState):
     def reactivate(self):
         # play music if any has been set in tiled
         try:
+            pygame.mixer.music.stop
+            res.fadeoutMusic()
             res.playMusic(self.area.tmxdata.music, start=self.area.music_pos)
         except AttributeError:
             res.fadeoutMusic()
