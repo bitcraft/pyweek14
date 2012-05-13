@@ -514,7 +514,7 @@ class Area(AbstractArea):
         """
         basic physics
         """
-      
+     
         time = time / 100
 
         if body.gravity:

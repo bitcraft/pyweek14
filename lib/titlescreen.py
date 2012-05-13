@@ -10,6 +10,48 @@ from lib2d import res, gui
 import pygame, os
 
 
+hints = """You must defeat the evil scientist in the lower levels!
+
+
+You arrive unarmed.  Use your cunning to defeat him!
+Q - Use items
+W - Jump
+E - Grab items
+
+
+When grabbing things, hold the key and you can push or pull them.
+Use Q to activate terminals, search items, press buttons, or open doors.
+The orange buttons near an elevator will call it to your level.
+
+
+Good luck, Agent!"""
+
+
+
+class InstructionScreen(GameState):
+    def activate(self):
+        self.foreground = (0,0,0)
+        self.background = (109, 109, 109)
+        self.border = gui.GraphicBox("dialog2-h.png", hollow=True)
+        self.borderFilled = gui.GraphicBox("dialog2.png")
+        self.msgFont = pygame.font.Font((res.fontPath("volter.ttf")), 9)
+        self.activated = True
+        self.redraw = True
+
+    def draw(self, surface):
+        if self.redraw:
+            sw, sh = surface.get_size()
+            self.redraw = False
+            self.borderFilled.draw(surface, ((0,0), (sw, sh)))
+            rect = pygame.Rect((sw*.05, sh*.05, sw*.90, sh*.90))
+            gui.drawText(surface, hints, (128, 129, 129), rect.move(1,1), self.msgFont)
+            gui.drawText(surface, hints, self.foreground, rect, self.msgFont)
+
+    def handle_event(self, event):
+        if event.type == pygame.locals.KEYDOWN:
+            sd.done()
+
+
 class TitleScreen(GameState):
 
     def activate(self):
@@ -45,6 +87,7 @@ class TitleScreen(GameState):
         self.menu.ready()
         self.redraw = True
 
+        res.playMusic("oneslymove.ogg")
 
     def handle_event(self, event):
         self.menu.handle_event(event)
@@ -91,8 +134,7 @@ class TitleScreen(GameState):
 
 
     def show_intro(self):
-        s = Cutscene(res.miscPath("intro.txt", "scripts")) 
-        sd.start_restart(s)
+        sd.start_restart(InstructionScreen())
 
 
     def savequit_game(self):

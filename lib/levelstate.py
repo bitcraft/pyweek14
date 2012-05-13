@@ -204,20 +204,21 @@ class LevelState(GameState):
         elif not self.hero.avatar.isPlaying("die"):
             self.hero.avatar.play("die")
 
-        flash = False
+        doFlash = False
         for flash in self.area.flashes:
             x1, y1, z1 = flash
             x2, y2, z2 = hero_body.bbox.center
             d = sqrt(pow(x1-x2, 2) + pow(y1-y2, 2) + pow(z1-z2, 2))
             if d < 300:
                 self.blank = True
+                doFlash = True
 
-        if flash:
+        if doFlash:
                 self.area.flashes = []
                 surface.fill((255,randint(0,255),255))
                 dirty = [ surface.get_rect() ]
 
-        elif self.blank:
+        if self.blank:
             self.blank = False
             sw, sh = surface.get_size()
             surface.fill(self.background)
@@ -232,28 +233,27 @@ class LevelState(GameState):
             self.updateText = True
 
 
-        else:
-            if self.updateText:
-                lines = 5
-                self.updateText = False
-                surface.fill(self.background, self.msgBorder)
-                self.border.draw(surface, self.msgBorder)
+        if self.updateText:
+            lines = 5
+            self.updateText = False
+            surface.fill(self.background, self.msgBorder)
+            self.border.draw(surface, self.msgBorder)
+            log = "\n".join(self.area.messages[-lines:])
+            rect = self.msgBorder.inflate(-16,-12).move(0,1)
+            extra = gui.drawText(None, log, (128,128,128), rect, self.msgFont)
+            while extra and lines > 1:
+                lines -= 1
                 log = "\n".join(self.area.messages[-lines:])
-                rect = self.msgBorder.inflate(-16,-12).move(0,1)
                 extra = gui.drawText(None, log, (128,128,128), rect, self.msgFont)
-                while extra and lines > 1:
-                    lines -= 1
-                    log = "\n".join(self.area.messages[-lines:])
-                    extra = gui.drawText(None, log, (128,128,128), rect, self.msgFont)
 
-                extra = gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
-                gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
+            extra = gui.drawText(surface, log, (128,128,128), rect.move(1,1), self.msgFont)
+            gui.drawText(surface, log, (0,0,0), rect, self.msgFont)
 
-                dirty.append(self.msgBorder)
+            dirty.append(self.msgBorder)
 
-            self.camera.center(self.area.getPosition(self.hero))
-            dirty.extend(self.camera.draw(surface))
-            self.border.draw(surface, self.mapBorder)
+        self.camera.center(self.area.getPosition(self.hero))
+        dirty.extend(self.camera.draw(surface))
+        self.border.draw(surface, self.mapBorder)
 
         return dirty
 
