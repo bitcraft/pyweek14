@@ -104,16 +104,20 @@ def build():
     avatar.add(ani)
     ani = Animation("lift-glow.png", "glow", 4, 1, 100)
     avatar.add(ani)
+    npc = BrokenLift()
+    npc.setName("Lift")
+    npc.setAvatar(avatar.copy())
+    npc.setGUID(770)
+    npc.size = (4, 24, 8)
+    npc.avatar.axis = (0,24)
+    uni.add(npc)
+
     npc = Lift()
     npc.setName("Lift")
     npc.setAvatar(avatar)
     npc.setGUID(769)
     npc.size = (4, 32, 16)
-    npc.avatar.axis = (0,16)
-    uni.add(npc)
-
-    npc = npc.copy()
-    npc.setGUID(770)
+    npc.avatar.axis = (0,-8)
     uni.add(npc)
 
     npc = npc.copy()
@@ -127,6 +131,7 @@ def build():
     npc = npc.copy()
     npc.setGUID(773)
     uni.add(npc)
+
 
 
     #lift buttons

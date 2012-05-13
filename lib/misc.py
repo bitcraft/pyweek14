@@ -20,6 +20,12 @@ Hitting keys at random has caused nothing to happen.
 As you watch the terminal, you wish you were somewhere else.""".split("\n")
 
 
+liftKillFlavour = """Wow, they should install a guard or something...
+The lift smashes you into the floor.
+Watch your head!  The lift crashes into your head, killing you instantly.
+""".split("\n")
+
+
 class InventoryObject(InteractiveObject):
     """
     holds stuff
@@ -49,8 +55,8 @@ class Lift(InteractiveObject):
 
 
     def update(self, time):
+        body = self.parent.getBody(self)
         if self.destination:
-            body = self.parent.getBody(self)
             self.parent.movePosition(body, (0,0,self.direction), clip=False)
             self.animate()
             bottom = int(body.bbox.bottom)
@@ -58,6 +64,13 @@ class Lift(InteractiveObject):
                 d = self.destination - body.bbox.bottom
                 self.parent.movePosition(body, (0,0,d))
                 self.cancelCall()
+
+            hero = self.parent.getChildByGUID(1)
+            if self.direction == 1 and hero.isAlive:
+                hero_body = hero.parent.getBody(hero)
+                if body.bbox.move(0,0,16).collidebbox(hero_body.bbox):
+                    self.parent.emitText(choice(liftKillFlavour), thing=self)
+                    hero.die()
 
 
     def cancelCall(self):
@@ -81,6 +94,17 @@ class Lift(InteractiveObject):
             self.direction = -1
         elif caller:
             caller.off() 
+
+
+class BrokenLift(Lift):
+    def update(self, time):
+        Lift.update(self, time)
+        body = self.parent.getBody(self)
+        if body.bbox.top <= 25 and not self.gravity:
+            self.parent.emitSound("crash1.wav", thing=self)
+            self.parent.emitText("Looks like the lift is broken...", thing=self)
+            self.cancelCall()
+            self.gravity = True
 
 
 class Callbutton(InteractiveObject):
@@ -158,13 +182,12 @@ class WakeTerminal(Terminal):
 
         self.animate()
 
+
 class DeadTerminal(Terminal):
     def use(self, user):
         area = user.parent
         area.emitText(choice(termMootFlavour), thing=self)
         self.animate()
-
-
 
 
 class Door(InteractiveObject):

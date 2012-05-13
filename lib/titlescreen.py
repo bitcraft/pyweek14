@@ -64,6 +64,10 @@ class TitleScreen(GameState):
         self.reactivate()
 
 
+    def deactivate(self):
+        GameState.deactivate(self)
+
+
     def reactivate(self):
         if self.game:
             self.menu = cMenu(((32,20), sd.get_size()),
@@ -86,8 +90,8 @@ class TitleScreen(GameState):
 
         self.menu.ready()
         self.redraw = True
-
         res.playMusic("oneslymove.ogg")
+
 
     def handle_event(self, event):
         self.menu.handle_event(event)
@@ -105,6 +109,7 @@ class TitleScreen(GameState):
 
 
     def new_game(self):
+        res.fadeoutMusic(1000)
         self.game = world.build()
         level = self.game.getChildByGUID(5001)
         sd.start(LevelState(level))
@@ -129,6 +134,7 @@ class TitleScreen(GameState):
 
 
     def continue_game(self):
+        res.fadeoutMusic(1000)
         level = self.game.getChildByGUID(5001)
         sd.start(LevelState(level))
 

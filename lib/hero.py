@@ -23,6 +23,8 @@ class Hero(AvatarObject):
         self.parent.emitText("You are dead.", thing=self)
         self.avatar.play("die", loop_frame=2)
         self.isAlive = False
+        body = self.parent.getBody(self)
+        body.acc.x = 0
 
 
     def fallDamage(self, dmg):
