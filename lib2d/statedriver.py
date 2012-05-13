@@ -32,6 +32,8 @@ every 15ms and then handled.  this prevents the game logic
 from dealing with input too often and slowing down rendering.
 """
 
+target_fps = 30
+
 
 inputs = []
 inputs.append(KeyboardPlayerInput())
@@ -227,7 +229,7 @@ class StateDriver(object):
         
         currentState = current_state()
         while currentState:
-            time = clock.tick(30)
+            clock.tick(target_fps)
 
             event = event_poll()
             while event:
@@ -269,7 +271,7 @@ class StateDriver(object):
             currentState = originalState
 
             if currentState:
-                time = time / 10.0
+                time = target_fps / 10.0
 
                 currentState.update(time)
                 currentState = current_state()
