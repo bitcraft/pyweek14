@@ -132,7 +132,7 @@ class Area(AbstractArea):
     The control layer is where objects and boundries are placed.  It will not
     be rendered.  Your map must not have any spaces that are open.  Each space
     must have a tile in it.  Blank spaces will not be rendered properly and
-    will leave annoying trails on the map.
+    will leave annoying trails on the screen.
 
     The control layer must be created with the utility included with lib2d.  It
     contains metadata that lib2d can use to layout and position objects

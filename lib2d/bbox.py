@@ -116,7 +116,7 @@ class BBox(object):
         right  = max( r.right  for r in rects )
         top    = max( r.top    for r in rects )
         depth, width, height = self.size
-        return Rect(front, left, bottom, depth, width, height)
+        return Rect(back, left, bottom, depth, width, height)
 
 
     def fit(self):
