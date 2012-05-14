@@ -45,7 +45,7 @@ class LaserRobot(AvatarObject):
         self.time = 0
         self.warned = False
         self.pushable = True
-        self.activated = True
+        self.activated = False
         self.dying = False
 
 
