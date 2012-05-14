@@ -335,12 +335,12 @@ class LevelState(GameState):
             if arg == BUTTONDOWN:
                 self.input_changed = True
                 if cmd == P1_ACTION1:
-                    for thing, body in getNearby(self.hero, 4):
+                    for thing, body in getNearby(self.hero, 8):
                         if hasattr(thing, "use"):
                             thing.use(self.hero)
 
                 if cmd == P1_ACTION3:
-                    for thing, body in getNearby(self.hero, 4):
+                    for thing, body in getNearby(self.hero, 6):
                         if thing.pushable and not self.hero.held:
                             self.hero.parent.join(hero_body, body)
                             self.hero.held = body

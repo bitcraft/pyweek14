@@ -3,7 +3,8 @@ from lib.misc import *
 
 
 
-fallFlavour = """You leapt before you looked.
+fallFlavour = \
+"""You leapt before you looked.
 You forgot how to levitate.
 You left your wings back at base.
 The results are in: gravity still exists.

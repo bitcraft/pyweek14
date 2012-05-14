@@ -7,7 +7,8 @@ import gc
 
 
 
-laserFlavour = """You've been lasered.  Maybe you can duck it?
+laserFlavour = \
+"""You've been lasered.  Maybe you can duck it?
 That's one heck of a hair cut!
 My eyes!!!
 Duck and cover!
@@ -15,7 +16,8 @@ Pew! Pew! Pew!
 If only you could avoid the laser...""".split("\n")
 
 
-bossFlavour = """You choke on the bullets in the back of your throat.
+bossFlavour = \
+"""You choke on the bullets in the back of your throat.
 As you die, you take "be shot" off your mental bucket list.
 Bullets tear through your flesh.
 Hot bullets tear through your entire body.
@@ -181,7 +183,7 @@ class Boss(AvatarObject):
     def shoot(self):
         robots = [ self.parent.getBody(i).bbox for i in self.parent.getChildren() if isinstance(i, LaserRobot) ]
         hero = self.parent.getChildByGUID(1)
-        bbox = self.parent.getBody(self).bbox.inflate(0,512,0)
+        bbox = self.parent.getBody(self).bbox.inflate(0,320,0)
         if bbox.collidebbox(self.parent.getBody(hero).bbox):
             if any([ bbox.collidebbox(i) for i in robots ]):
                 self.parent.emitText("Bullets smash into the robot, but are bounced off and scattered all over the room.", thing=self)

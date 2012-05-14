@@ -217,7 +217,11 @@ class StateDriver(object):
 
         # set an event to flush out commands
         event_flush = pygame.USEREVENT
-        pygame.time.set_timer(pygame.USEREVENT, 20)
+        pygame.time.set_timer(event_flush, 20)
+
+        # set an event to update the game state
+        #update_state = pygame.USEREVENT + 1
+        #pygame.time.set_timer(update_state, 30)
 
         # make sure our custom events will be triggered
         pygame.event.set_allowed([event_flush])

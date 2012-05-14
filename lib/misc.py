@@ -10,6 +10,7 @@ text = {}
 text['take'] = "You take a {} from {}."
 text['useKey'] = "You use the {} on the door."
 text['locked'] = "This door requires {}."
+text['blocked'] = "You attempt to close the door, but you are in the doorway and it refuses to shut"
 
 
 termMootFlavour = \
@@ -20,10 +21,10 @@ Hitting keys at random has caused nothing to happen.
 As you watch the terminal, you wish you were somewhere else.""".split("\n")
 
 
-liftKillFlavour = """Wow, they should install a guard or something...
+liftKillFlavour = \
+"""Wow, they should install a guard or something...
 The lift smashes you into the floor.
-Watch your head!  The lift crashes into your head, killing you instantly.
-""".split("\n")
+Watch your head!  The lift crashes into your head, killing you instantly.""".split("\n")
 
 
 class InventoryObject(InteractiveObject):
@@ -173,7 +174,7 @@ class WakeTerminal(Terminal):
     def use(self, user):
         area = user.parent
         if self.activated:
-            area.emitText("Your face is suntil throbbing from when you last hit the terminal with it.", thing=self)
+            area.emitText("Your face is still throbbing from when you last hit the terminal with it.", thing=self)
 
         else:
             self.activated = True
@@ -249,7 +250,7 @@ class Door(InteractiveObject):
             else:
                 self.parent.emitText(text['locked'].format(self.key.name), thing=self)
         else:
-            self.toggle(user)
+            self.toggle()
 
 
     def toggle(self, user=None):
@@ -257,8 +258,10 @@ class Door(InteractiveObject):
             if user:
                 body0 = self.parent.getBody(self)
                 body1 = self.parent.getBody(user)
-                if not (body0 in self.parent.testCollideObjects(body1.bbox)):
-                    self.off()
+                if (body0 in self.parent.testCollideObjects(body1.bbox.inflate(64,0,0))):
+                    self.parent.emitText(text['blocked'], thing = self)
+                else:
+                self.off()
             else:
                 self.off()
         else:
