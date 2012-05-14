@@ -157,6 +157,8 @@ class Boss(AvatarObject):
 
     def die2(self):
         self.avatar.play("dead") 
+        body = self.parent.getBody(self)
+        body.bbox = body.bbox.move(0,0-16)
 
 
     def die(self):
@@ -164,9 +166,11 @@ class Boss(AvatarObject):
 
 
     def hit(self):
+        hero = self.parent.getChildByGUID(1)
+        hero.addThing([ self.parent.getChildByName("Green Key")[0] ])
         self.parent.emitSound("crash1.wav", thing=self)
-        self.parent.emitText("Blinded, the boss keels over, muttering something, and dies", thing=self)
-        self.parent.emitText("You win!", thing=self)
+        self.parent.emitText("Blinded, the boss keels over, muttering something, and dies.", thing=self)
+        self.parent.emitText("A green key drops on the ground and you pick it up.", thing=self)
         self.isAlive = False
         self.dying = True
         self.time = 0

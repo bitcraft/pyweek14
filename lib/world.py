@@ -116,8 +116,8 @@ def build():
     npc.setName("Lift")
     npc.setAvatar(avatar)
     npc.setGUID(769)
-    npc.size = (4, 32, 16)
-    npc.avatar.axis = (0,-8)
+    npc.size = (4, 32, 8)
+    npc.avatar.axis = (0,24)
     uni.add(npc)
 
     npc = npc.copy()
@@ -178,18 +178,32 @@ def build():
     npc.size = (4,16,16)
     uni.add(npc)
 
-    npc = DeadTerminal()
+    npc = WakeTerminal()
     npc.setName("Terminal")
     npc.setAvatar(avatar.copy())
     npc.size = (4,16,16)
     npc.setGUID(1282)
     uni.add(npc)
 
-    npc = WakeTerminal()
+    npc = BombTerminal()
     npc.setName("Terminal")
     npc.setAvatar(avatar.copy())
     npc.size = (4,16,16)
     npc.setGUID(1283)
+    uni.add(npc)
+
+    npc = PasswordTerminal()
+    npc.setName("Terminal")
+    npc.setAvatar(avatar.copy())
+    npc.size = (4,16,16)
+    npc.setGUID(1284)
+    uni.add(npc)
+
+    npc = DefuseTerminal()
+    npc.setName("Terminal")
+    npc.setAvatar(avatar.copy())
+    npc.size = (4,16,16)
+    npc.setGUID(1285)
     uni.add(npc)
 
 
@@ -238,6 +252,11 @@ def build():
     npc = npc.copy()
     npc.setGUID(1538)
     npc.key = blue_key
+    uni.add(npc)
+
+    npc = npc.copy()
+    npc.setGUID(1539)
+    npc.key = green_key
     uni.add(npc)
 
 
@@ -295,7 +314,7 @@ def build():
     level = fromTMX(uni, "level1.tmx")
     level.setName("Level 1")
     level.setGUID(5001)
-
+    level.add(Bomb())
 
 
 

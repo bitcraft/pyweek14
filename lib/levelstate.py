@@ -252,9 +252,11 @@ class LevelState(GameState):
 
             dirty.append(self.msgBorder)
 
-        self.camera.center(self.area.getPosition(self.hero))
-        dirty.extend(self.camera.draw(surface))
-        self.border.draw(surface, self.mapBorder)
+
+        if not doFlash:
+            self.camera.center(self.area.getPosition(self.hero))
+            dirty.extend(self.camera.draw(surface))
+            self.border.draw(surface, self.mapBorder)
 
         return dirty
 

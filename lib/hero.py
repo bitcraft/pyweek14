@@ -17,6 +17,7 @@ class Hero(AvatarObject):
         self.gravity = True
         self.pushable = True
         self.held = None
+        self.hasPassword = False
 
 
     def die(self):

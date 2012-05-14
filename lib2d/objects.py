@@ -196,6 +196,14 @@ class GameObject(object):
         raise Exception, msg.format(guid)
 
 
+    def getChildByName(self, name):
+        for child in self.getChildren():
+            if child.name == name: return child
+
+        msg = "Object by name ({}) not found."
+        raise Exception, msg.format(name)
+
+
     def get_flag(self):
         """
         flags are binary values that are attached to the object

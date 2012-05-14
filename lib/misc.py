@@ -103,6 +103,8 @@ class BrokenLift(Lift):
         if body.bbox.top <= 25 and not self.gravity:
             self.parent.emitSound("crash1.wav", thing=self)
             self.parent.emitText("Looks like the lift is broken...", thing=self)
+            self.parent.emitText("Well that was fun.", thing=self)
+            self.parent.emitText("Game Over", thing=self)
             self.cancelCall()
             self.gravity = True
 
@@ -171,7 +173,7 @@ class WakeTerminal(Terminal):
     def use(self, user):
         area = user.parent
         if self.activated:
-            area.emitText("Your face is still throbbing from when you last hit the terminal with it.", thing=self)
+            area.emitText("Your face is suntil throbbing from when you last hit the terminal with it.", thing=self)
 
         else:
             self.activated = True
@@ -189,6 +191,44 @@ class DeadTerminal(Terminal):
         area.emitText(choice(termMootFlavour), thing=self)
         self.animate()
 
+
+class BombTerminal(Terminal):
+    sounds = ['ex1.wav']
+
+    def use(self, user):
+        area = user.parent
+        area.emitText("Looks like they crossed the wires somewhere...", thing=self)
+        self.animate()
+        hero = self.parent.getChildByGUID(1)
+        hero.die()
+        hero.parent.flash(hero.parent.getBody(hero).bbox.center)
+        self.parent.emitSound("ex1.wav", thing=self)
+
+
+class PasswordTerminal(Terminal):
+    def use(self, user):
+        area = user.parent
+        self.animate()
+        area.emitText("Oh, so 'knockers' is the password", thing=self)
+        hero = self.parent.getChildByGUID(1)
+        hero.hasPassword = True
+
+
+class DefuseTerminal(Terminal):
+    def use(self, user):
+        area = user.parent
+        self.animate()
+        hero = self.parent.getChildByGUID(1)
+        if self.activated:
+            area.emitText(choice(termMootFlavour), thing=self)
+        else:
+            self.activated = True
+            if hero.hasPassword:
+                area.emitText("You frantically enter the password.  Seems ok.", thing=self)
+                [ setattr(i, "isAlive", False) for i in self.parent.getChildren() if isinstance(i, Bomb) ]
+            else:
+                area.emitText("WHAT?  IT NEEDS A PASSWORD!?!", thing=self)
+ 
 
 class Door(InteractiveObject):
     sounds = ['door-open.wav', 'door-close.wav']
@@ -249,3 +289,87 @@ class Door(InteractiveObject):
         self.parent.emitSound("door-open.wav", thing=self)
         self.avatar.play("opening", loop=0, callback=self.forceOn)
         self.state = 1
+
+
+class Bomb(GameObject):
+    size = (16, 16, 16)
+
+    def __init__(self):
+        GameObject.__init__(self)
+        self.time = 300000
+        self.warned = 0
+        self.isAlive = True
+
+    def update(self, time):
+        if not self.isAlive: return
+        hero = self.parent.getChildByGUID(1)
+
+        if self.time < 0:
+            self.parent.emitText("The bomb explodes, filling every room with poison gas.", thing=hero)
+            self.parent.flash(hero.parent.getBody(hero).bbox.center)
+            hero.die()
+            self.isAlive = False
+        elif self.time < 1000 and not self.warned==1000:
+            self.warned = 1000
+            self.parent.emitText("Only 1 second left until the bomb goes off!", thing=hero)
+        elif self.time < 2000 and not self.warned==2000:
+            self.warned = 2000
+            self.parent.emitText("Only 2 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 3000 and not self.warned==3000:
+            self.warned = 3000
+            self.parent.emitText("Only 3 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 4000 and not self.warned==4000:
+            self.warned = 4000
+            self.parent.emitText("Only 4 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 5000 and not self.warned==5000:
+            self.warned = 5000
+            self.parent.emitText("Only 5 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 6000 and not self.warned==6000:
+            self.warned = 6000
+            self.parent.emitText("Only 6 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 7000 and not self.warned==7000:
+            self.warned = 7000
+            self.parent.emitText("Only 7 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 8000 and not self.warned==8000:
+            self.warned = 8000
+            self.parent.emitText("Only 8 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 9000 and not self.warned==9000:
+            self.warned = 9000
+            self.parent.emitText("Only 9 seconds left until the bomb goes off!", thing=hero)
+        elif self.time < 10000 and not self.warned==10000:
+            self.warned = 10000
+            self.parent.emitText("Only 10 seconds left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You are going to have to hurry!", thing=hero)
+        elif self.time < 15000 and not self.warned==15000:
+            self.warned = 15000
+            self.parent.emitText("Only 15 seconds left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You are going to have to hurry!", thing=hero)
+        elif self.time < 30000 and not self.warned==30000:
+            self.warned = 30000
+            self.parent.emitText("Only 30 seconds left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You are going to have to hurry!", thing=hero)
+        elif self.time < 45000 and not self.warned==45000:
+            self.warned = 45000
+            self.parent.emitText("Only 45 seconds left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You are going to have to hurry!", thing=hero)
+        elif self.time < 60000 and not self.warned==60000:
+            self.warned = 60000
+            self.parent.emitText("Only 1 minutes left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You are going to have to hurry!", thing=hero)
+        elif self.time < 120000 and not self.warned==120000:
+            self.warned = 120000
+            self.parent.emitText("Only 2 minutes left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You are going to have to hurry!", thing=hero)
+        elif self.time < 180000 and not self.warned==180000:
+            self.warned = 180000
+            self.parent.emitText("Only 3 minutes left until the bomb goes off!", thing=hero)
+            self.parent.emitText("You start to feel nervous...", thing=hero)
+        elif self.time < 240000 and not self.warned==240000:
+            self.warned = 240000
+            self.parent.emitText("Only 4 minutes left until the bomb goes off!", thing=hero)
+            self.parent.emitText("Better hurry!", thing=hero)
+        elif self.time >= 300000 and not self.warned==300000:
+            self.warned = 300000
+            self.parent.emitText("Only 5 minutes left until the bomb goes off!", thing=hero)
+
+        self.time -= time
