@@ -74,16 +74,16 @@ class TitleScreen(GameState):
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
                 ('Continue', self.continue_game),
-                ('Save', self.save_game),
-                ('Reload', self.load_game),
-                ('Save and Quit', self.savequit_game),
+                #('Save', self.save_game),
+                #('Reload', self.load_game),
+                #('Save and Quit', self.savequit_game),
                 ('Quit', self.quit_game)],
                 font="visitor1.ttf", font_size=20)
         else:
             self.menu = cMenu(((32,20), sd.get_size()),
                 20, -5, 'vertical', 100,
                 [('New Game', self.new_game),
-                ('Continue', self.load_game),
+                #('Continue', self.load_game),
                 ('Introduction', self.show_intro),
                 ('Quit', self.quit_game)],
                 font="visitor1.ttf", font_size=20)
