@@ -187,8 +187,9 @@ class GameObject(object):
         search the children of this object for an object
         with the matching guid
         """
-       
+      
         guid = int(guid) 
+        if self.guid == guid: return self 
         for child in self.getChildren():
             if child.guid == guid: return child
 

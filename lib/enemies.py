@@ -45,7 +45,7 @@ class LaserRobot(AvatarObject):
         self.time = 0
         self.warned = False
         self.pushable = True
-        self.activated = False
+        self.activated = True
         self.dying = False
 
 
@@ -158,7 +158,7 @@ class Boss(AvatarObject):
     def die2(self):
         self.avatar.play("dead") 
         body = self.parent.getBody(self)
-        body.bbox = body.bbox.move(0,0-16)
+        body.bbox = body.bbox.move(0,0, -32)
 
 
     def die(self):
@@ -167,10 +167,12 @@ class Boss(AvatarObject):
 
     def hit(self):
         hero = self.parent.getChildByGUID(1)
-        hero.addThing([ self.parent.getChildByName("Green Key")[0] ])
         self.parent.emitSound("crash1.wav", thing=self)
         self.parent.emitText("Blinded, the boss keels over, muttering something, and dies.", thing=self)
         self.parent.emitText("A green key drops on the ground and you pick it up.", thing=self)
+        for i in self.inventory:
+            self.removeThing(i)
+            hero.addThing(i)
         self.isAlive = False
         self.dying = True
         self.time = 0

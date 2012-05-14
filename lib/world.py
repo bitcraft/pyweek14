@@ -29,6 +29,29 @@ def build():
     uni.setGUID(0)
 
 
+    # keys
+    avatar = Avatar()
+    ani = StaticAnimation("red-key.png", "idle")
+    avatar.add(ani)
+    red_key = Key()
+    red_key.setAvatar(avatar)
+    red_key.setName("Red Key")
+
+    avatar = Avatar()
+    ani = StaticAnimation("blue-key.png", "idle")
+    avatar.add(ani)
+    blue_key = Key()
+    blue_key.setAvatar(avatar)
+    blue_key.setName("Blue Key")
+
+    avatar = Avatar()
+    ani = StaticAnimation("green-key.png", "idle")
+    avatar.add(ani)
+    green_key = Key()
+    green_key.setAvatar(avatar)
+    green_key.setName("Green Key")
+
+
     # build our avatars and heros
     avatar = Avatar()
     ani = Animation("hero-idle.png", "stand", 9, 1, 100)
@@ -90,6 +113,7 @@ def build():
     ani = StaticAnimation("boss-dead.png", "dead")
     avatar.add(ani)
     npc = Boss()
+    npc.addThing(green_key)
     npc.setName("Boss")
     npc.setAvatar(avatar)
     npc.setGUID(516)
@@ -207,27 +231,7 @@ def build():
     uni.add(npc)
 
 
-    # keys
-    avatar = Avatar()
-    ani = StaticAnimation("red-key.png", "idle")
-    avatar.add(ani)
-    red_key = Key()
-    red_key.setAvatar(avatar)
-    red_key.setName("Red Key")
 
-    avatar = Avatar()
-    ani = StaticAnimation("blue-key.png", "idle")
-    avatar.add(ani)
-    blue_key = Key()
-    blue_key.setAvatar(avatar)
-    blue_key.setName("Blue Key")
-
-    avatar = Avatar()
-    ani = StaticAnimation("green-key.png", "idle")
-    avatar.add(ani)
-    green_key = Key()
-    green_key.setAvatar(avatar)
-    green_key.setName("Green Key")
 
 
     # keyed doors
