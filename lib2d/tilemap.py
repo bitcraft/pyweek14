@@ -211,14 +211,9 @@ class BufferedTilemapRenderer(object):
 
     def queueEdgeTiles(self, (x, y)):
         """
-        add the tiles on the edge that need to be redrawn to the queue also,
-        for colorkey layers, we will fill the new edge with the colorkey color
-        here
-
-        uses a standard python list for the queue
+        add the tiles on the edge that need to be redrawn to the queue.
+        uses a iterator for the queue
         override if you want a different type of queue
-
-        for internal use only
         """
 
         if self.queue == None:
@@ -254,12 +249,12 @@ class BufferedTilemapRenderer(object):
             self.queue = chain(p, self.queue)
 
 
-    def update(self, time):
+    def update(self, time=None):
         """
         the drawing operations and management of the buffer is handled here.
         if you notice that the tiles are being drawn while the screen
         is scrolling, you will need to adjust the number of tiles that are
-        bilt per update.
+        bilt per update or increase update frequency.
         """
 
         if self.queue:
@@ -295,7 +290,6 @@ class BufferedTilemapRenderer(object):
         passing a list here will correctly draw the surfaces to create the
         illusion of depth.
 
-        TODO: make sure the rects are returned for dirty updates
         """
 
         if self.blank:
@@ -359,10 +353,9 @@ class BufferedTilemapRenderer(object):
             tth = self.view.top * th
             getTile = self.getTileImage
 
-            images = [ (i, getTile(i)) for i in self.queue ]
+            images = ifilter(lambda x: x[1], ((i, getTile(i)) for i in self.queue) )
 
-            [ blit(image, (x*tw-ltw, y * th-tth))
-              for ((x,y,l), image) in ifilter(lambda x: x[1], images) ]
+            [ blit(image, (x*tw-ltw, y * th-tth)) for ((x,y,l), image) in images ]
 
             self.queue = None
 
