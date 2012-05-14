@@ -139,8 +139,6 @@ class GameObject(object):
 
 
     def remove(self, other):
-        print ">>", self, "removing", other
-
         try:
             self._children.remove(other)
             other._parent = None
@@ -260,7 +258,6 @@ class GameObject(object):
         game and references cleared.
         """
 
-        print "being dest", self
         name = "DEAD-{}".format(self.name)
         if self._parent:
             self._parent.remove(self)

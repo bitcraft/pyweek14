@@ -231,8 +231,6 @@ class Area(AbstractArea):
         #AbstractArea.add(self, body)
         self.changedAvatars = True
 
-        print "adding ", thing
-
 
     def remove(self, thing):
         if self.inUpdate:
