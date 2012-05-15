@@ -261,7 +261,7 @@ class Door(InteractiveObject):
                 if (body0 in self.parent.testCollideObjects(body1.bbox.inflate(64,0,0))):
                     self.parent.emitText(text['blocked'], thing = self)
                 else:
-                self.off()
+                    self.off()
             else:
                 self.off()
         else:

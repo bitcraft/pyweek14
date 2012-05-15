@@ -47,7 +47,7 @@ screen_surface = None
 update_display = None
 double_buffer = False
 hwsurface = False
-surface_flags = 0
+surface_flags = pygame.FULLSCREEN
 
 
 
