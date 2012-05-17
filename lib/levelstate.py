@@ -138,7 +138,7 @@ class LevelState(GameState):
 
         # make a list of elevators in the level
         self.elevators = tmxloader.buildDistributionRects(self.area.tmxdata,
-                         "Elevators", gid=None)
+                         "Elevators", real_gid=None)
 
         # load sounds from area
         for filename in self.area.soundFiles:

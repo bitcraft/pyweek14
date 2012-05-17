@@ -296,6 +296,7 @@ class Door(InteractiveObject):
 
 class Bomb(GameObject):
     size = (16, 16, 16)
+    gravity = False
 
     def __init__(self):
         GameObject.__init__(self)

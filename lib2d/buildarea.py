@@ -39,15 +39,17 @@ def fromTMX(parent, mapname):
 
     props = data.getTilePropertiesByLayer(-1)
 
+    """
     print "GID MAP:"
     for k in sorted(data.gidmap.keys()):
         print "  {}: {}\t{}".format(k,
                                     data.gidmap[k],
                                     data.getTilePropertiesByGID(data.gidmap[k]))
+    """
 
     # load the level geometry from the 'control' layer 
     rects = []
-    for rect in tmxloader.buildDistributionRects(data, "Control", gid=1):
+    for rect in tmxloader.buildDistributionRects(data, "Control", real_gid=1):
         # translate the tiled coordinates to world coordinates
         # for platformers
         x, y, sx, sy = rect
