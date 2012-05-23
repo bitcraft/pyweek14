@@ -154,9 +154,11 @@ class LevelState(GameState):
 
     def deactivate(self):
         res.fadeoutMusic(1000)
+
         # unload the children
         for child in self.area.getChildren():
             child.unload()
+
         self.area.music_pos = float(pygame.mixer.music.get_pos()) / 1000
         SoundMan.unload()   
 
