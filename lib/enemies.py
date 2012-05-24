@@ -105,7 +105,6 @@ class LaserRobot(AvatarObject):
     def warn(self):
         self.avatar.play("warn", loop=4)
         self.parent.emitSound("warn.wav", thing=self)
-        self.parent.emitText("A robot charges his laser.", thing=self)
 
 
     def shoot(self):
@@ -188,7 +187,7 @@ class Boss(AvatarObject):
             if any([ bbox.collidebbox(i) for i in robots ]):
                 self.parent.emitText("Bullets smash into the robot, but are bounced off and scattered all over the room.", thing=self)
 
-            else:
+            elif hero.isAlive:
                 self.parent.emitText(choice(bossFlavour), thing=self)
                 hero.die()
 

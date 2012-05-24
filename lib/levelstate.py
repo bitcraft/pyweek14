@@ -8,7 +8,7 @@ from lib2d.signals import *
 from lib2d.vec import Vec2d
 from lib2d.quadtree import QuadTree, FrozenRect
 from lib2d import res, gui
-from pytmx import tmxloader
+import pytmx
 
 from random import randint
 from math import sqrt, atan2
@@ -137,7 +137,7 @@ class LevelState(GameState):
         hero_body = self.area.getBody(self.hero)
 
         # make a list of elevators in the level
-        self.elevators = tmxloader.buildDistributionRects(self.area.tmxdata,
+        self.elevators = pytmx.buildDistributionRects(self.area.tmxdata,
                          "Elevators", real_gid=None)
 
         # load sounds from area
@@ -352,7 +352,6 @@ class LevelState(GameState):
 
         if (not x == 0) or (not y == 0) or (not z == 0):
             if self.hero.held:
-                #self.area.setOrientation(self.hero, atan2(y, z))
                 y = y / 3.0
 
             if abs(y) < 1.0:
@@ -419,7 +418,7 @@ def playSound(sender, **kwargs):
         vol = 1/d * 20 
     except ZeroDivisionError:
         vol = 1.0
-    if vol > .05:
+    if vol > .02:
         SoundMan.play(kwargs['filename'], volume=vol)
 
 

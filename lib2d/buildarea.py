@@ -1,4 +1,4 @@
-from pytmx import tmxloader
+from pytmx import tmxloader, buildDistributionRects
 from lib2d.area import Area
 from lib2d.bbox import BBox
 from lib2d import res
@@ -49,7 +49,7 @@ def fromTMX(parent, mapname):
 
     # load the level geometry from the 'control' layer 
     rects = []
-    for rect in tmxloader.buildDistributionRects(data, "Control", real_gid=1):
+    for rect in buildDistributionRects(data, "Control", real_gid=1):
         # translate the tiled coordinates to world coordinates
         # for platformers
         x, y, sx, sy = rect

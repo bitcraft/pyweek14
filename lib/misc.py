@@ -11,6 +11,7 @@ text['take'] = "You take a {} from {}."
 text['useKey'] = "You use the {} on the door."
 text['locked'] = "This door requires {}."
 text['blocked'] = "You attempt to close the door, but you are in the doorway and it refuses to shut"
+text['difused'] = "You frantically enter the password.  Bomb is difused, now run!"
 
 
 termMootFlavour = \
@@ -225,7 +226,7 @@ class DefuseTerminal(Terminal):
         else:
             self.activated = True
             if hero.hasPassword:
-                area.emitText("You frantically enter the password.  Seems ok.", thing=self)
+                area.emitText(text['difused'], thing=self)
                 [ setattr(i, "isAlive", False) for i in self.parent.getChildren() if isinstance(i, Bomb) ]
             else:
                 area.emitText("WHAT?  IT NEEDS A PASSWORD!?!", thing=self)
@@ -304,6 +305,7 @@ class Bomb(GameObject):
         self.warned = 0
         self.isAlive = True
 
+    # GIANT MACRO HACK
     def update(self, time):
         if not self.isAlive: return
         hero = self.parent.getChildByGUID(1)
