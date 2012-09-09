@@ -33,6 +33,7 @@ Features:
     Image loading with pygame
 
 New in .15:
+    loader: fixed issue where objects with tile gid did not load properties
     loader: polygon and polyline objects
     loader: new lookup methods use iterators
     loader: loading function moved into classes

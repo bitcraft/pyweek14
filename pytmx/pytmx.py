@@ -1,7 +1,7 @@
 from itertools import chain, product
 from xml.etree import ElementTree
 from collections import defaultdict 
-from utils import decode_gid, types, parse_properties
+from utils import decode_gid, types, parse_properties, read_points
 from constants import *
 
 
@@ -141,7 +141,7 @@ class TiledMap(TiledElement):
         Return iterator of all the objects associated with this map
         """
 
-        return chain(*[ i.objects for i in self.objectgroups ])
+        return chain(*(i for i in self.objectgroups))
 
 
     def getTileProperties(self, (x, y, layer)):
@@ -295,11 +295,19 @@ class TiledMap(TiledElement):
         for node in etree.findall('layer'):
             self.tilelayers.append(TiledLayer(self, node))
 
+        for node in etree.findall('objectgroup'):
+            self.objectgroups.append(TiledObjectGroup(self, node))
+
         for node in etree.findall('tileset'):
             self.tilesets.append(TiledTileset(self, node))
 
-        for node in etree.findall('objectgroup'):
-            self.objectgroups.append(TiledObjectGroup(self, node))
+        # "tile objects", objects with a GID, have need to have their
+        # attributes set after the tileset is loaded
+        for o in self.getObjects():
+            p = self.getTilePropertiesByGID(o.gid)
+            if p:
+                o.name = "TileObject"
+                o.__dict__.update(p)
 
 
     @property
@@ -369,8 +377,11 @@ class TiledTileset(TiledElement):
         for child in node.iter('tile'):
             real_gid = int(child.get("id"))
             p = parse_properties(child)
+            p['width'] = self.tilewidth
+            p['height'] = self.tileheight
             for gid, flags in self.parent.mapGID(real_gid + self.firstgid):
                 self.parent.setTileProperties(gid, p)
+
 
         image_node = node.find('image')
         self.source = image_node.get('source')
@@ -380,7 +391,7 @@ class TiledTileset(TiledElement):
 class TiledLayer(TiledElement):
     reserved = "name x y width height opacity properties data".split()
 
-    def __init__(self, parent, node):
+    def __init__(self, parent, node=None):
         TiledElement.__init__(self)
         self.parent = parent
         self.data = []
@@ -390,7 +401,7 @@ class TiledLayer(TiledElement):
         self.opacity = 1.0
         self.visible = True
        
-        self.parse(node)
+        if node: self.parse(node)
 
 
     def __repr__(self):
@@ -499,7 +510,6 @@ class TiledObjectGroup(TiledElement, list):
 
 
 class TiledObject(TiledElement):
-    __slots__ = "reserved name type x y width height gid".split()
     reserved = "name type x y width height gid properties polygon polyline image".split()
 
     def __init__(self, parent, node):
@@ -523,21 +533,34 @@ class TiledObject(TiledElement):
 
 
     def parse(self, node):
-        def read_points(text):
-            return [ tuple(map(lambda x: int(x), i.split(',')))
-                     for i in text.split() ]
-            
         self.set_properties(node)
 
+        # correctly handle "tile objects" (object with gid set)
         if self.gid:
-            self.gid = self.parent.mapGID(gid)
+            self.gid = self.parent.registerGID(self.gid)
 
         polygon = node.find('polygon')
         if polygon is not None:
+            x1 = x2 = y1 = y2 = 0
             self.points = read_points(polygon.get('points'))
             self.closed = 1
+            for x, y in self.points:
+                if x < x1: x1 = x
+                if x > x2: x2 = x
+                if y < y1: y1 = y
+                if y > y2: y2 = y
+            self.width = abs(x1) + abs(x2) 
+            self.height = abs(y1) + abs(y2)
 
         polyline = node.find('polyline')
         if polyline is not None:
+            x1 = x2 = y1 = y2 = 0
             self.points = read_points(polyline.get('points'))
             self.closed = 0
+            for x, y in self.points:
+                if x < x1: x1 = x
+                if x > x2: x2 = x
+                if y < y1: y1 = y
+                if y > y2: y2 = y
+            self.width = abs(x1) + abs(x2) 
+            self.height = abs(y1) + abs(y2)

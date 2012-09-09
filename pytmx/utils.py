@@ -5,6 +5,12 @@ from constants import *
 
 
 
+def read_points(text):
+    return [ tuple(map(lambda x: int(x), i.split(',')))
+         for i in text.split() ]
+
+
+
 def parse_properties(node):
     """
     parse a node and return a dict that represents a tiled "property"
