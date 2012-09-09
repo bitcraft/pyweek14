@@ -5,6 +5,11 @@ from constants import *
 
 
 
+"""
+Various code that doesn't really fit anywhere else
+"""
+
+
 def read_points(text):
     return [ tuple(map(lambda x: int(x), i.split(',')))
          for i in text.split() ]
@@ -29,7 +34,7 @@ def parse_properties(node):
 
 
 def decode_gid(raw_gid):
-    # gid's are encoded with extra information
+    # gids are encoded with extra information
     # as of 0.7.0 it determines if the tile should be flipped when rendered
     # as of 0.8.0 bit 30 determines if GID is rotated
 
@@ -57,11 +62,11 @@ def handle_bool(text):
         if text == "no":     return False
     except:
         pass
-        
+
     raise ValueError
 
 
-# used to change the unicode string returned from xml to proper python 
+# used to change the unicode string returned from xml to proper python
 # variable types.
 types = defaultdict(lambda: str)
 types.update({
@@ -106,27 +111,27 @@ def group(l, n):
 def buildDistributionRects(tmxmap, layer, tileset=None, real_gid=None):
     """
     generate a set of non-overlapping rects that represents the distribution
-    of the specfied gid.
+    of the specified gid.
 
     useful for generating rects for use in collision detection
     """
-    
+
     if isinstance(tileset, int):
         try:
             tileset = tmxmap.tilesets[tileset]
         except IndexError:
-            msg = "Tileset #{} not found in map {}."
+            msg = "Tileset #{0} not found in map {1}."
             raise IndexError, msg.format(tileset, tmxmap)
 
     elif isinstance(tileset, str):
         try:
             tileset = [ t for t in tmxmap.tilesets if t.name == tileset ].pop()
         except IndexError:
-            msg = "Tileset \"{}\" not found in map {}."
+            msg = "Tileset \"{0}\" not found in map {1}."
             raise ValueError, msg.format(tileset, tmxmap)
 
     elif tileset:
-        msg = "Tileset must be either a int or string. got: {}"
+        msg = "Tileset must be either a int or string. got: {0}"
         raise ValueError, msg.format(type(tileset))
 
     gid = None
@@ -134,7 +139,7 @@ def buildDistributionRects(tmxmap, layer, tileset=None, real_gid=None):
         try:
             gid, flags = tmxmap.mapGID(real_gid)[0]
         except IndexError:
-            msg = "GID #{} not found"
+            msg = "GID #{0} not found"
             raise ValueError, msg.format(real_gid)
 
 
@@ -145,7 +150,7 @@ def buildDistributionRects(tmxmap, layer, tileset=None, real_gid=None):
             layer = [ l for l in tmxmap.tilelayers if l.name == layer ].pop()
             layer_data = layer.data
         except IndexError:
-            msg = "Layer \"{}\" not found in map {}."
+            msg = "Layer \"{0}\" not found in map {1}."
             raise ValueError, msg.format(layer, tmxmap)
 
     p = product(xrange(tmxmap.width), xrange(tmxmap.height))
@@ -160,29 +165,29 @@ def buildDistributionRects(tmxmap, layer, tileset=None, real_gid=None):
 
 def simplify(all_points, tilewidth, tileheight):
     """
-    klugde:
+    kludge:
 
     "A kludge (or kluge) is a workaround, a quick-and-dirty solution,
     a clumsy or inelegant, yet effective, solution to a problem, typically
     using parts that are cobbled together."
 
     -- wikipedia
-   
-    turn a list of points into a rects 
+
+    turn a list of points into a rects
     adjacent rects will be combined.
 
     plain english:
-        the input list must be a a list of tuples that represent
+        the input list must be a list of tuples that represent
         the areas to be combined into rects
         the rects will be blended together over solid groups
 
         so if data is something like:
 
-        0 1 1 1 0 0 0 
-        0 1 1 0 0 0 0 
-        0 0 0 0 0 4 0 
+        0 1 1 1 0 0 0
+        0 1 1 0 0 0 0
         0 0 0 0 0 4 0
-        0 0 0 0 0 0 0 
+        0 0 0 0 0 4 0
+        0 0 0 0 0 0 0
         0 0 1 1 1 1 1
 
         you'll have the 4 rects that mask the area like this:
@@ -197,7 +202,7 @@ def simplify(all_points, tilewidth, tileheight):
         pretty cool, right?
 
     there may be cases where the number of rectangles is not as low as possible,
-    but i haven't found that it is excessively bad.  certainly much better than
+    but I haven't found that it is excessively bad.  certainly much better than
     making a list of rects, one for each tile on the map!
 
     """
@@ -206,12 +211,12 @@ def simplify(all_points, tilewidth, tileheight):
         ox, oy = sorted([ (sum(p), p) for p in points ])[0][1]
         x = ox
         y = oy
-        ex = None            
+        ex = None
 
         while 1:
             x += 1
             if not (x, y) in points:
-                if ex == None:
+                if ex is None:
                     ex = x - 1
 
                 if ((ox, y+1) in points):
