@@ -43,7 +43,6 @@ class GraphicBox(object):
                   for i in range(9) ]
 
         if self.hollow:
-            print "hollow"
             ck = tiles[8].get_at((0,0))
             [ t.set_colorkey(ck, RLEACCEL) for t in tiles ]
 

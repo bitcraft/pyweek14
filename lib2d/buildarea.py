@@ -191,11 +191,8 @@ def fromTMX(parent, mapname):
     pushback = ['Desk', 'Callbutton', 'Terminal']
 
     for i in [ i for i in area.getChildren() if i.name in pushback ]:
-        print "pushing back", i
         body = lift.parent.getBody(i)
-        print body.bbox
         body.bbox = body.bbox.move(-16,0,0)
-        print body.bbox
 
     # handle the exits
     # here only the exits and positions are saved
